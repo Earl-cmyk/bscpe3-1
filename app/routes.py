@@ -1,0 +1,173 @@
+from datetime import datetime
+from pathlib import Path
+from uuid import uuid4
+
+from flask import Blueprint, current_app, jsonify, render_template, request, send_from_directory
+from werkzeug.utils import secure_filename
+
+from .models import (
+	add_budget_entry, add_task, delete_task, get_budget_entry, get_task, list_budget_entries, list_tasks, update_budget_entry, update_task,
+)
+from .utils.query_parser import parse_query
+from config import ALLOWED_COURSES, ALLOWED_DIFFICULTIES
+
+
+main = Blueprint("main", __name__)
+
+
+@main.get("/")
+def index():
+	return render_template("index.html")
+
+
+def _payload():
+	return request.get_json(silent=True) or request.form
+
+
+def _validate(data):
+	missing = [field for field in ("title", "course", "description", "deadline") if not str(data.get(field, "")).strip()]
+	if missing:
+		return f"Missing required field: {missing[0]}"
+	if data["course"] not in ALLOWED_COURSES and data["course"] != "Other":
+		return "Invalid course"
+	if data.get("difficulty", "Medium") not in ALLOWED_DIFFICULTIES:
+		return "Invalid difficulty"
+	try:
+		datetime.fromisoformat(data["deadline"].replace("Z", "+00:00"))
+	except ValueError:
+		return "Deadline must be a valid ISO datetime"
+	return None
+
+
+@main.get("/api/tasks")
+def get_tasks():
+	return jsonify(tasks=list_tasks(current_app.config["DATABASE_PATH"], request.args.get("search", "").strip()))
+
+
+@main.get("/api/budget")
+def get_budget():
+	entries = list_budget_entries(current_app.config["DATABASE_PATH"])
+	balance = sum(entry["amount"] if entry["type"] == "deposit" else -entry["amount"] for entry in entries)
+	return jsonify(entries=entries, balance=round(balance, 2))
+
+
+@main.get("/api/query")
+def query_tasks():
+	query = request.args.get("q", "").strip().lower()
+	if query in {"class fund used today", "class fund used this week", "class fund use this month"}:
+		entries = list_budget_entries(current_app.config["DATABASE_PATH"])
+		today = datetime.now().date()
+		if query.endswith("today"):
+			start = end = today
+			label = "Class fund used today"
+		elif query.endswith("week"):
+			start = today.fromordinal(today.toordinal() - today.weekday())
+			end = start.fromordinal(start.toordinal() + 6)
+			label = "Class fund used this week"
+		else:
+			start = today.replace(day=1)
+			end = today
+			label = "Class fund used this month"
+		used = [entry for entry in entries if entry["type"] == "withdraw" and entry["status"] == "spent" and start.isoformat() <= entry["created_at"][:10] <= end.isoformat()]
+		return jsonify(label=label, entries=used, total=round(sum(entry["amount"] for entry in used), 2))
+	parsed = parse_query(request.args.get("q", ""))
+	if not parsed:
+		return jsonify(error="Try deadlines today, deadlines this week, deadlines this month, or to do for HDL today"), 400
+	start, end = parsed["start"].isoformat(), parsed["end"].isoformat()
+	tasks = []
+	for task in list_tasks(current_app.config["DATABASE_PATH"]):
+		deadline = task["deadline"][:10]
+		if start <= deadline <= end and (not parsed.get("course") or task["course"].lower() == parsed["course"].lower()):
+			tasks.append(task)
+	return jsonify(label=parsed["label"], tasks=tasks)
+
+
+@main.post("/api/tasks")
+def create_task():
+	data = _payload()
+	if data.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
+	error = _validate(data)
+	if error:
+		return jsonify(error=error), 400
+	attachment = request.files.get("attachment")
+	values = {key: str(data.get(key, "")).strip() for key in ("title", "course", "description", "deadline")}
+	values["difficulty"] = data.get("difficulty", "Medium")
+	if attachment and attachment.filename:
+		filename = secure_filename(attachment.filename)
+		if not filename:
+			return jsonify(error="Invalid attachment filename"), 400
+		stored = f"{uuid4().hex}_{filename}"
+		attachment.save(Path(current_app.config["UPLOAD_FOLDER"]) / stored)
+		values.update(attachment_name=filename, attachment_path=stored, attachment_type=attachment.mimetype or "application/octet-stream")
+	return jsonify(task=add_task(current_app.config["DATABASE_PATH"], values)), 201
+
+
+@main.post("/api/budget")
+def create_budget_entry():
+	data = _payload()
+	if data.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
+	entry_type = str(data.get("type", "")).strip().lower()
+	reason = str(data.get("reason", "")).strip()
+	try:
+		amount = float(data.get("amount", ""))
+	except (TypeError, ValueError):
+		return jsonify(error="Amount must be a valid number"), 400
+	if entry_type not in {"deposit", "withdraw"}:
+		return jsonify(error="Choose deposit or withdraw"), 400
+	if amount <= 0:
+		return jsonify(error="Amount must be greater than zero"), 400
+	if not reason:
+		return jsonify(error="Reason is required"), 400
+	return jsonify(entry=add_budget_entry(current_app.config["DATABASE_PATH"], {"type": entry_type, "amount": round(amount, 2), "reason": reason})), 201
+
+
+@main.patch("/api/budget/<int:entry_id>")
+def update_budget(entry_id):
+	data = _payload()
+	if data.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
+	entry = get_budget_entry(current_app.config["DATABASE_PATH"], entry_id)
+	if not entry:
+		return jsonify(error="Budget entry not found"), 404
+	if entry["type"] != "withdraw" or entry["status"] != "pending":
+		return jsonify(error="Only pending withdrawals can be resolved"), 400
+	action = str(data.get("action", "")).strip().lower()
+	if action == "cancel":
+		values = {"type": "deposit", "status": "cancelled"}
+	elif action == "spent":
+		values = {"status": "spent"}
+	else:
+		return jsonify(error="Choose cancel or spent"), 400
+	return jsonify(entry=update_budget_entry(current_app.config["DATABASE_PATH"], entry_id, values))
+
+
+@main.route("/api/tasks/<int:task_id>", methods=["GET", "PATCH"])
+def task_detail(task_id):
+	if request.method == "GET":
+		task = get_task(current_app.config["DATABASE_PATH"], task_id)
+		return (jsonify(task=task), 200) if task else (jsonify(error="Task not found"), 404)
+	data = _payload()
+	error = _validate({**(get_task(current_app.config["DATABASE_PATH"], task_id) or {}), **data})
+	if error:
+		return jsonify(error=error), 400
+	return jsonify(task=update_task(current_app.config["DATABASE_PATH"], task_id, data))
+
+
+@main.delete("/api/tasks/<int:task_id>")
+def remove_task(task_id):
+	if not get_task(current_app.config["DATABASE_PATH"], task_id):
+		return jsonify(error="Task not found"), 404
+	delete_task(current_app.config["DATABASE_PATH"], task_id)
+	return jsonify(ok=True)
+
+
+@main.get("/uploads/<path:filename>")
+def uploaded_file(filename):
+	return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
+
+
+@main.get("/health")
+def health():
+	return jsonify(status="ok")
