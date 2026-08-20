@@ -102,6 +102,26 @@ def init_db(database_path):
 			)
 			"""
 		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS note_attachments (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				note_id INTEGER NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+				name TEXT NOT NULL,
+				path TEXT NOT NULL,
+				type TEXT NOT NULL,
+				created_at TEXT NOT NULL
+			)
+			"""
+		)
+		legacy_notes = connection.execute(
+			"SELECT id, attachment_name, attachment_path, attachment_type, created_at FROM notes WHERE attachment_path IS NOT NULL"
+		).fetchall()
+		for note in legacy_notes:
+			connection.execute(
+				"INSERT INTO note_attachments (note_id, name, path, type, created_at) SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM note_attachments WHERE note_id = ? AND path = ?)",
+				(note["id"], note["attachment_name"] or note["attachment_path"], note["attachment_path"], note["attachment_type"] or "application/octet-stream", note["created_at"], note["id"], note["attachment_path"]),
+			)
 		announcement_columns = {row["name"] for row in connection.execute("PRAGMA table_info(announcements)").fetchall()}
 		if "title" not in announcement_columns:
 			connection.execute("ALTER TABLE announcements ADD COLUMN title TEXT NOT NULL DEFAULT 'Announcement'")
@@ -207,6 +227,20 @@ def delete_task(database_path, task_id):
 		connection.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
 
 
+def _note_with_attachments(connection, note):
+	result = _row_to_dict(note)
+	if not result:
+		return None
+	result["attachments"] = [
+		_row_to_dict(attachment)
+		for attachment in connection.execute(
+			"SELECT id, name, path, type, created_at FROM note_attachments WHERE note_id = ? ORDER BY id",
+			(result["id"],),
+		).fetchall()
+	]
+	return result
+
+
 def list_notes(database_path, course=""):
 	with get_connection(database_path) as connection:
 		query = "SELECT * FROM notes"
@@ -215,12 +249,12 @@ def list_notes(database_path, course=""):
 			query += " WHERE course = ?"
 			params.append(course)
 		query += " ORDER BY created_at DESC, id DESC"
-		return [_row_to_dict(row) for row in connection.execute(query, params).fetchall()]
+		return [_note_with_attachments(connection, row) for row in connection.execute(query, params).fetchall()]
 
 
 def get_note(database_path, note_id):
 	with get_connection(database_path) as connection:
-		return _row_to_dict(connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone())
+		return _note_with_attachments(connection, connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone())
 
 
 def add_note(database_path, note):
@@ -228,8 +262,13 @@ def add_note(database_path, note):
 	with get_connection(database_path) as connection:
 		cursor = connection.execute(
 			"INSERT INTO notes (title, course, caption, attachment_name, attachment_path, attachment_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-			(note["title"], note["course"], note["caption"], note.get("attachment_name"), note.get("attachment_path"), note.get("attachment_type"), now, now),
+			(note["title"], note["course"], note["caption"], None, None, None, now, now),
 		)
+		for attachment in note.get("attachments", []):
+			connection.execute(
+				"INSERT INTO note_attachments (note_id, name, path, type, created_at) VALUES (?, ?, ?, ?, ?)",
+				(cursor.lastrowid, attachment["name"], attachment["path"], attachment["type"], now),
+			)
 	return get_note(database_path, cursor.lastrowid)
 
 
@@ -242,6 +281,19 @@ def update_note(database_path, note_id, values):
 	set_clause = ", ".join(f"{key} = ?" for key in changes)
 	with get_connection(database_path) as connection:
 		connection.execute(f"UPDATE notes SET {set_clause} WHERE id = ?", [*changes.values(), note_id])
+	return get_note(database_path, note_id)
+
+
+def add_note_attachments(database_path, note_id, attachments):
+	if not attachments:
+		return get_note(database_path, note_id)
+	now = datetime.now(timezone.utc).isoformat()
+	with get_connection(database_path) as connection:
+		for attachment in attachments:
+			connection.execute(
+				"INSERT INTO note_attachments (note_id, name, path, type, created_at) VALUES (?, ?, ?, ?, ?)",
+				(note_id, attachment["name"], attachment["path"], attachment["type"], now),
+			)
 	return get_note(database_path, note_id)
 
 

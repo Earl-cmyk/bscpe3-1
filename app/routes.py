@@ -11,6 +11,7 @@ from .models import (
 	add_announcement,
 	add_budget_entry,
 	add_note,
+	add_note_attachments,
 	add_poll_vote,
 	add_task,
 	delete_note,
@@ -81,6 +82,20 @@ def _note_values(data):
 	return values, None
 
 
+def _save_attachments(files):
+	attachments = []
+	for attachment in files:
+		if not attachment or not attachment.filename:
+			continue
+		filename = secure_filename(attachment.filename)
+		if not filename:
+			return None, "Invalid attachment filename"
+		stored = f"{uuid4().hex}_{filename}"
+		attachment.save(Path(current_app.config["UPLOAD_FOLDER"]) / stored)
+		attachments.append({"name": filename, "path": stored, "type": attachment.mimetype or "application/octet-stream"})
+	return attachments, None
+
+
 @main.get("/api/notes")
 def get_notes():
 	course = request.args.get("course", "").strip()
@@ -97,14 +112,10 @@ def create_note():
 	values, error = _note_values(data)
 	if error:
 		return jsonify(error=error), 400
-	attachment = request.files.get("attachment")
-	if attachment and attachment.filename:
-		filename = secure_filename(attachment.filename)
-		if not filename:
-			return jsonify(error="Invalid attachment filename"), 400
-		stored = f"{uuid4().hex}_{filename}"
-		attachment.save(Path(current_app.config["UPLOAD_FOLDER"]) / stored)
-		values.update(attachment_name=filename, attachment_path=stored, attachment_type=attachment.mimetype or "application/octet-stream")
+	attachments, error = _save_attachments(request.files.getlist("attachments"))
+	if error:
+		return jsonify(error=error), 400
+	values["attachments"] = attachments
 	return jsonify(note=add_note(current_app.config["DATABASE_PATH"], values)), 201
 
 
@@ -123,7 +134,11 @@ def edit_note(note_id):
 	values, error = _note_values(request.form)
 	if error:
 		return jsonify(error=error), 400
-	return jsonify(note=update_note(current_app.config["DATABASE_PATH"], note_id, values))
+	attachments, error = _save_attachments(request.files.getlist("attachments"))
+	if error:
+		return jsonify(error=error), 400
+	updated = update_note(current_app.config["DATABASE_PATH"], note_id, values)
+	return jsonify(note=add_note_attachments(current_app.config["DATABASE_PATH"], updated["id"], attachments))
 
 
 @main.delete("/api/notes/<int:note_id>")
@@ -363,7 +378,7 @@ def remove_task(task_id):
 
 @main.get("/uploads/<path:filename>")
 def uploaded_file(filename):
-	return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=False)
+	return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=request.args.get("download") == "1")
 
 
 @main.get("/health")

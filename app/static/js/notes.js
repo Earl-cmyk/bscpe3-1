@@ -1,13 +1,18 @@
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
 function noteMarkup(note) {
-	const file = note.attachment_path ? `<a class="text-link icon-action" href="/uploads/${encodeURIComponent(note.attachment_path)}" target="_blank" rel="noreferrer" aria-label="Open file" title="Open file">&#128206;</a>` : '';
-	const attachmentDisplay = note.attachment_name ? `<div class="note-attachment"><small>&#128206; ${escapeHtml(note.attachment_name)}</small></div>` : '';
+	const attachments = note.attachments?.length ? note.attachments : (note.attachment_path ? [{ name: note.attachment_name, path: note.attachment_path, type: note.attachment_type }] : []);
+	const attachmentDisplay = attachments.length ? `<div class="note-attachments">${attachments.map((attachment) => {
+		const url = `/uploads/${encodeURIComponent(attachment.path)}`;
+		const name = escapeHtml(attachment.name || attachment.path);
+		if (attachment.type?.startsWith('image/')) return `<figure class="note-media"><a href="${url}" target="_blank" rel="noreferrer"><img src="${url}" alt="${name}" loading="lazy" /></a><figcaption><span>${name}</span><a class="text-link" href="${url}?download=1" aria-label="Download ${name}" title="Download ${name}">&#8595;</a></figcaption></figure>`;
+		if (attachment.type?.startsWith('video/')) return `<figure class="note-media"><video controls preload="metadata"><source src="${url}" type="${escapeHtml(attachment.type)}" /></video><figcaption><span>${name}</span><a class="text-link" href="${url}?download=1" aria-label="Download ${name}" title="Download ${name}">&#8595;</a></figcaption></figure>`;
+		return `<div class="note-attachment"><span>&#128206; ${name}</span><a class="text-link" href="${url}?download=1" aria-label="Download ${name}" title="Download ${name}">&#8595;</a></div>`;
+	}).join('')}</div>` : '';
 	return `<article class="history-item" data-note-id="${note.id}">
 		<div class="announcement-meta">
 			<span>${new Date(note.created_at).toLocaleString()}</span>
 			<small>${escapeHtml(note.course)}</small>
-			${file}
 		</div>
 		<h2>${escapeHtml(note.title)}</h2>
 		<p>${escapeHtml(note.caption)}</p>

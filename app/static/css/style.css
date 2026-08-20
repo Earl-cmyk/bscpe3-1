@@ -276,6 +276,51 @@ body {
   border: 1px solid var(--line);
 }
 
+.note-attachments {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.note-media,
+.note-attachment {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.note-media img,
+.note-media video {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  background: #000;
+}
+
+.note-media figcaption,
+.note-attachment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.note-media figcaption {
+  padding-top: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.note-media figcaption span,
+.note-attachment span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .muted {
   color: var(--muted);
 }
