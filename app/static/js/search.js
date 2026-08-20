@@ -4,7 +4,12 @@ let searchTimer;
 const searchEscape = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
 function renderSearchResults(results) {
-  searchResults.innerHTML = results.length ? results.map((result) => `<a class="search-result" href="${result.url}"><span class="search-result-icon">${result.kind === 'Task' ? '&#128197;' : '&#128226;'}</span><span><strong>${searchEscape(result.title)}</strong><small>${searchEscape(result.kind)} - ${searchEscape(result.meta || '')}</small></span><time>${new Date(result.created_at).toLocaleDateString()}</time></a>`).join('') : '<p class="search-empty">No matches found.</p>';
+  const getIcon = (kind) => {
+    if (kind === 'Task') return '&#128197;';
+    if (kind === 'Note') return '&#128196;';
+    return '&#128226;';
+  };
+  searchResults.innerHTML = results.length ? results.map((result) => `<a class="search-result" href="${result.url}"><span class="search-result-icon">${getIcon(result.kind)}</span><span><strong>${searchEscape(result.title)}</strong><small>${searchEscape(result.kind)} - ${searchEscape(result.meta || '')}</small></span><time>${new Date(result.created_at).toLocaleDateString()}</time></a>`).join('') : '<p class="search-empty">No matches found.</p>';
   searchResults.hidden = false;
 }
 

@@ -18,6 +18,12 @@ plannerQuery.onsubmit = async (event) => {
     answer = plannerEscape(data.error);
   } else if (data.entries) {
     answer = data.entries.length ? data.entries.map((entry) => `${plannerEscape(entry.reason)} - ${plannerMoney(entry.amount)} spent`).join('<br>') : `No spending found. Total: ${plannerMoney(data.total)}`;
+  } else if (data.notes) {
+    answer = data.notes.length ? data.notes.map((note) => `<strong>${plannerEscape(note.title)}</strong> (${plannerEscape(note.course)})<br><small>${plannerEscape(note.caption)}</small>`).join('<br><br>') : 'No notes found.';
+  } else if (data.tasks && data.notes) {
+    const tasks = data.tasks.length ? data.tasks.map((task) => `${plannerEscape(task.title)} - ${new Date(task.deadline).toLocaleString()}`).join('<br>') : 'No pending deadlines.';
+    const notes = data.notes.length ? data.notes.map((note) => `<strong>${plannerEscape(note.title)}</strong><br><small>${plannerEscape(note.caption)}</small>`).join('<br><br>') : 'No notes.';
+    answer = `<strong>Deadlines:</strong><br>${tasks}<br><br><strong>Notes:</strong><br>${notes}`;
   } else {
     answer = data.tasks?.length ? data.tasks.map((task) => `${plannerEscape(task.title)} - ${plannerEscape(task.course)} - ${new Date(task.deadline).toLocaleString()}`).join('<br>') : 'No matching tasks.';
   }

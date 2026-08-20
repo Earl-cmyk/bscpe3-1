@@ -10,17 +10,22 @@ from werkzeug.utils import secure_filename
 from .models import (
 	add_announcement,
 	add_budget_entry,
+	add_note,
 	add_poll_vote,
 	add_task,
+	delete_note,
 	delete_task,
 	get_budget_entry,
+	get_note,
 	get_task,
 	list_announcements,
 	list_budget_entries,
+	list_notes,
 	list_tasks,
 	list_upcoming_tasks,
 	search_content,
 	update_budget_entry,
+	update_note,
 	update_task,
 )
 from .utils.query_parser import parse_query
@@ -50,6 +55,11 @@ def announcements_page():
 	return render_template("announcements.html")
 
 
+@main.get("/notes")
+def notes_page():
+	return render_template("notes.html")
+
+
 def _payload():
 	return request.get_json(silent=True) or request.form
 
@@ -59,6 +69,71 @@ def verify_pin():
 	data = _payload()
 	if data.get("pin") != current_app.config["TASK_PIN"]:
 		return jsonify(error="Invalid PIN"), 403
+	return jsonify(ok=True)
+
+
+def _note_values(data):
+	values = {key: str(data.get(key, "")).strip() for key in ("title", "course", "caption")}
+	if not all(values.values()):
+		return None, "Title, course, and caption are required"
+	if values["course"] not in ALLOWED_COURSES:
+		return None, "Invalid course"
+	return values, None
+
+
+@main.get("/api/notes")
+def get_notes():
+	course = request.args.get("course", "").strip()
+	if course and course not in ALLOWED_COURSES:
+		return jsonify(error="Invalid course"), 400
+	return jsonify(notes=list_notes(current_app.config["DATABASE_PATH"], course))
+
+
+@main.post("/api/notes")
+def create_note():
+	data = request.form
+	if data.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
+	values, error = _note_values(data)
+	if error:
+		return jsonify(error=error), 400
+	attachment = request.files.get("attachment")
+	if attachment and attachment.filename:
+		filename = secure_filename(attachment.filename)
+		if not filename:
+			return jsonify(error="Invalid attachment filename"), 400
+		stored = f"{uuid4().hex}_{filename}"
+		attachment.save(Path(current_app.config["UPLOAD_FOLDER"]) / stored)
+		values.update(attachment_name=filename, attachment_path=stored, attachment_type=attachment.mimetype or "application/octet-stream")
+	return jsonify(note=add_note(current_app.config["DATABASE_PATH"], values)), 201
+
+
+@main.get("/api/notes/<int:note_id>")
+def note_detail(note_id):
+	note = get_note(current_app.config["DATABASE_PATH"], note_id)
+	return (jsonify(note=note), 200) if note else (jsonify(error="Note not found"), 404)
+
+
+@main.patch("/api/notes/<int:note_id>")
+def edit_note(note_id):
+	if request.form.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
+	if not get_note(current_app.config["DATABASE_PATH"], note_id):
+		return jsonify(error="Note not found"), 404
+	values, error = _note_values(request.form)
+	if error:
+		return jsonify(error=error), 400
+	return jsonify(note=update_note(current_app.config["DATABASE_PATH"], note_id, values))
+
+
+@main.delete("/api/notes/<int:note_id>")
+def remove_note(note_id):
+	data = request.get_json(silent=True) or request.form
+	if data.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
+	if not get_note(current_app.config["DATABASE_PATH"], note_id):
+		return jsonify(error="Note not found"), 404
+	delete_note(current_app.config["DATABASE_PATH"], note_id)
 	return jsonify(ok=True)
 
 

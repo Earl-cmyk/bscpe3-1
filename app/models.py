@@ -87,6 +87,21 @@ def init_db(database_path):
 			)
 			"""
 		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS notes (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				title TEXT NOT NULL,
+				course TEXT NOT NULL,
+				caption TEXT NOT NULL,
+				attachment_name TEXT,
+				attachment_path TEXT,
+				attachment_type TEXT,
+				created_at TEXT NOT NULL,
+				updated_at TEXT NOT NULL
+			)
+			"""
+		)
 		announcement_columns = {row["name"] for row in connection.execute("PRAGMA table_info(announcements)").fetchall()}
 		if "title" not in announcement_columns:
 			connection.execute("ALTER TABLE announcements ADD COLUMN title TEXT NOT NULL DEFAULT 'Announcement'")
@@ -190,6 +205,49 @@ def update_task(database_path, task_id, values):
 def delete_task(database_path, task_id):
 	with get_connection(database_path) as connection:
 		connection.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+
+
+def list_notes(database_path, course=""):
+	with get_connection(database_path) as connection:
+		query = "SELECT * FROM notes"
+		params = []
+		if course:
+			query += " WHERE course = ?"
+			params.append(course)
+		query += " ORDER BY created_at DESC, id DESC"
+		return [_row_to_dict(row) for row in connection.execute(query, params).fetchall()]
+
+
+def get_note(database_path, note_id):
+	with get_connection(database_path) as connection:
+		return _row_to_dict(connection.execute("SELECT * FROM notes WHERE id = ?", (note_id,)).fetchone())
+
+
+def add_note(database_path, note):
+	now = datetime.now(timezone.utc).isoformat()
+	with get_connection(database_path) as connection:
+		cursor = connection.execute(
+			"INSERT INTO notes (title, course, caption, attachment_name, attachment_path, attachment_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+			(note["title"], note["course"], note["caption"], note.get("attachment_name"), note.get("attachment_path"), note.get("attachment_type"), now, now),
+		)
+	return get_note(database_path, cursor.lastrowid)
+
+
+def update_note(database_path, note_id, values):
+	allowed = {"title", "course", "caption"}
+	changes = {key: value for key, value in values.items() if key in allowed}
+	if not changes:
+		return get_note(database_path, note_id)
+	changes["updated_at"] = datetime.now(timezone.utc).isoformat()
+	set_clause = ", ".join(f"{key} = ?" for key in changes)
+	with get_connection(database_path) as connection:
+		connection.execute(f"UPDATE notes SET {set_clause} WHERE id = ?", [*changes.values(), note_id])
+	return get_note(database_path, note_id)
+
+
+def delete_note(database_path, note_id):
+	with get_connection(database_path) as connection:
+		connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
 
 
 def list_budget_entries(database_path):

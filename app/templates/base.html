@@ -14,9 +14,10 @@
       <div class="navbar-inner">
         <a class="brand" href="{{ url_for('main.index') }}"><span class="brand-mark">3-1</span><span>R3-1NFORCE</span></a>
         <div class="nav-actions">
-          <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('main.index') }}" aria-label="Home" title="Home">&#8962;</a>
-          <a class="nav-link {% if request.path == '/tasks' %}active{% endif %}" href="{{ url_for('main.tasks_page') }}" aria-label="Tasks" title="Tasks">&#128197;</a>
-          <a class="nav-link {% if request.path == '/budget' %}active{% endif %}" href="{{ url_for('main.budget_page') }}" aria-label="Class fund" title="Class fund">&#128176;</a>
+          <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('main.index') }}" aria-label="Home" title="Home">🏠</a>
+          <a class="nav-link {% if request.path == '/tasks' %}active{% endif %}" href="{{ url_for('main.tasks_page') }}" aria-label="Tasks" title="Tasks">📋</a>
+          <a class="nav-link {% if request.path == '/notes' %}active{% endif %}" href="{{ url_for('main.notes_page') }}" aria-label="Notes" title="Notes">📓</a>
+          <a class="nav-link {% if request.path == '/budget' %}active{% endif %}" href="{{ url_for('main.budget_page') }}" aria-label="Class fund" title="Class fund">💰</a>
           <div class="global-search">
             <form id="globalSearchForm" role="search">
               <span aria-hidden="true">&#128269;</span>
@@ -33,7 +34,7 @@
       <footer class="chat-bar">
         <span class="chat-orb">?</span>
         <form id="queryForm">
-          <input id="queryInput" placeholder="Ask your planner..." aria-label="Planner query" />
+          <input id="queryInput" placeholder="What's up?" aria-label="Planner query" />
           <button class="chat-submit" type="submit" aria-label="Send planner query" title="Send planner query">&uarr;</button>
         </form>
       </footer>
