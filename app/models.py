@@ -19,6 +19,7 @@ def get_connection(database_path):
 
 def init_db(database_path):
 	with get_connection(database_path) as connection:
+		connection.execute("PRAGMA foreign_keys = ON")
 		connection.execute(
 			"""
 			CREATE TABLE IF NOT EXISTS tasks (
@@ -48,6 +49,61 @@ def init_db(database_path):
 				created_at TEXT NOT NULL
 			)
 			"""
+		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS announcements (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				title TEXT NOT NULL,
+				body TEXT NOT NULL,
+				link_url TEXT,
+				attachment_name TEXT,
+				attachment_path TEXT,
+				attachment_type TEXT,
+				created_at TEXT NOT NULL,
+				updated_at TEXT NOT NULL
+			)
+			"""
+		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS poll_options (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				announcement_id INTEGER NOT NULL REFERENCES announcements(id) ON DELETE CASCADE,
+				label TEXT NOT NULL,
+				position INTEGER NOT NULL
+			)
+			"""
+		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS poll_votes (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				announcement_id INTEGER NOT NULL REFERENCES announcements(id) ON DELETE CASCADE,
+				option_id INTEGER NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE,
+				school_id TEXT NOT NULL,
+				created_at TEXT NOT NULL,
+				UNIQUE(announcement_id, school_id)
+			)
+			"""
+		)
+		announcement_columns = {row["name"] for row in connection.execute("PRAGMA table_info(announcements)").fetchall()}
+		if "title" not in announcement_columns:
+			connection.execute("ALTER TABLE announcements ADD COLUMN title TEXT NOT NULL DEFAULT 'Announcement'")
+		if "link_url" not in announcement_columns:
+			connection.execute("ALTER TABLE announcements ADD COLUMN link_url TEXT")
+		if "attachment_type" not in announcement_columns:
+			connection.execute("ALTER TABLE announcements ADD COLUMN attachment_type TEXT")
+		if "updated_at" not in announcement_columns:
+			connection.execute("ALTER TABLE announcements ADD COLUMN updated_at TEXT NOT NULL DEFAULT ''")
+		if "link" in announcement_columns:
+			connection.execute("UPDATE announcements SET link_url = link WHERE link_url IS NULL")
+		connection.execute("UPDATE announcements SET updated_at = created_at WHERE updated_at = ''")
+		option_columns = {row["name"] for row in connection.execute("PRAGMA table_info(poll_options)").fetchall()}
+		if "position" not in option_columns:
+			connection.execute("ALTER TABLE poll_options ADD COLUMN position INTEGER NOT NULL DEFAULT 0")
+		connection.execute(
+			"CREATE UNIQUE INDEX IF NOT EXISTS idx_poll_votes_announcement_school ON poll_votes (announcement_id, school_id)"
 		)
 		budget_columns = {row["name"] for row in connection.execute("PRAGMA table_info(budget_entries)").fetchall()}
 		if "status" not in budget_columns:
@@ -88,6 +144,20 @@ def list_tasks(database_path, search=""):
 			params = [term, term, term]
 		query += " ORDER BY completed, deadline, id"
 		return [_row_to_dict(row) for row in connection.execute(query, params).fetchall()]
+
+
+def list_upcoming_tasks(database_path, limit=3):
+	with get_connection(database_path) as connection:
+		rows = connection.execute(
+			"""
+			SELECT * FROM tasks
+			WHERE completed = 0 AND deadline >= ?
+			ORDER BY deadline, id
+			LIMIT ?
+			""",
+			(datetime.now(timezone.utc).isoformat(), limit),
+		).fetchall()
+		return [_row_to_dict(row) for row in rows]
 
 
 def get_task(database_path, task_id):
@@ -152,3 +222,113 @@ def update_budget_entry(database_path, entry_id, values):
 def get_budget_entry(database_path, entry_id):
 	with get_connection(database_path) as connection:
 		return _row_to_dict(connection.execute("SELECT * FROM budget_entries WHERE id = ?", (entry_id,)).fetchone())
+
+
+def _announcement_with_options(connection, announcement):
+	result = _row_to_dict(announcement)
+	if not result:
+		return None
+	result["options"] = [
+		_row_to_dict(row)
+		for row in connection.execute(
+			"""
+			SELECT o.id, o.label, o.position, COUNT(v.id) AS votes
+			FROM poll_options o
+			LEFT JOIN poll_votes v ON v.option_id = o.id
+			WHERE o.announcement_id = ?
+			GROUP BY o.id
+			ORDER BY o.position, o.id
+			""",
+			(result["id"],),
+		).fetchall()
+	]
+	return result
+
+
+def list_announcements(database_path, limit=None):
+	with get_connection(database_path) as connection:
+		query = "SELECT * FROM announcements ORDER BY created_at DESC, id DESC"
+		params = ()
+		if limit is not None:
+			query += " LIMIT ?"
+			params = (limit,)
+		return [_announcement_with_options(connection, row) for row in connection.execute(query, params).fetchall()]
+
+
+def search_content(database_path, term, limit=12):
+	pattern = f"%{term}%"
+	with get_connection(database_path) as connection:
+		tasks = connection.execute(
+			"""
+			SELECT id, title, description AS detail, course AS meta, created_at
+			FROM tasks
+			WHERE title LIKE ? OR description LIKE ? OR course LIKE ?
+			ORDER BY created_at DESC, id DESC
+			LIMIT ?
+			""",
+			(pattern, pattern, pattern, limit),
+		).fetchall()
+		announcements = connection.execute(
+			"""
+			SELECT id, title, body AS detail, 'Announcement' AS meta, created_at
+			FROM announcements
+			WHERE title LIKE ? OR body LIKE ?
+			ORDER BY created_at DESC, id DESC
+			LIMIT ?
+			""",
+			(pattern, pattern, limit),
+		).fetchall()
+	results = [
+		{**_row_to_dict(row), "kind": "Task", "url": "/tasks"}
+		for row in tasks
+	] + [
+		{**_row_to_dict(row), "kind": "Announcement", "url": "/announcements"}
+		for row in announcements
+	]
+	return sorted(results, key=lambda item: (item["created_at"], item["id"]), reverse=True)[:limit]
+
+
+def add_announcement(database_path, announcement, options=None):
+	now = datetime.now(timezone.utc).isoformat()
+	with get_connection(database_path) as connection:
+		cursor = connection.execute(
+			"""
+			INSERT INTO announcements
+			(title, body, link_url, attachment_name, attachment_path, attachment_type, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+			""",
+			(
+				announcement["title"],
+				announcement["body"],
+				announcement.get("link_url"),
+				announcement.get("attachment_name"),
+				announcement.get("attachment_path"),
+				announcement.get("attachment_type"),
+				now,
+				now,
+			),
+		)
+		announcement_id = cursor.lastrowid
+		for position, label in enumerate(options or []):
+			connection.execute(
+				"INSERT INTO poll_options (announcement_id, label, position) VALUES (?, ?, ?)",
+				(announcement_id, label, position),
+			)
+		row = connection.execute("SELECT * FROM announcements WHERE id = ?", (announcement_id,)).fetchone()
+		return _announcement_with_options(connection, row)
+
+
+def add_poll_vote(database_path, announcement_id, option_id, school_id):
+	with get_connection(database_path) as connection:
+		option = connection.execute(
+			"SELECT id FROM poll_options WHERE id = ? AND announcement_id = ?",
+			(option_id, announcement_id),
+		).fetchone()
+		if not option:
+			return None
+		connection.execute(
+			"INSERT INTO poll_votes (announcement_id, option_id, school_id, created_at) VALUES (?, ?, ?, ?)",
+			(announcement_id, option_id, school_id, datetime.now(timezone.utc).isoformat()),
+		)
+		row = connection.execute("SELECT * FROM announcements WHERE id = ?", (announcement_id,)).fetchone()
+		return _announcement_with_options(connection, row)

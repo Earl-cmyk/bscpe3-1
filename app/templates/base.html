@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}R3-1NFORCE{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="navbar-inner">
+        <a class="brand" href="{{ url_for('main.index') }}"><span class="brand-mark">3-1</span><span>R3-1NFORCE</span></a>
+        <div class="nav-actions">
+          <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('main.index') }}" aria-label="Home" title="Home">&#8962;</a>
+          <a class="nav-link {% if request.path == '/tasks' %}active{% endif %}" href="{{ url_for('main.tasks_page') }}" aria-label="Tasks" title="Tasks">&#128197;</a>
+          <a class="nav-link {% if request.path == '/budget' %}active{% endif %}" href="{{ url_for('main.budget_page') }}" aria-label="Class fund" title="Class fund">&#128176;</a>
+          <div class="global-search">
+            <form id="globalSearchForm" role="search">
+              <span aria-hidden="true">&#128269;</span>
+              <input id="globalSearchInput" type="search" placeholder="Search" autocomplete="off" aria-label="Search tasks and announcements" />
+            </form>
+            <div id="globalSearchResults" class="global-search-results" hidden></div>
+          </div>
+        </div>
+      </div>
+    </nav>
+    <div class="shell">
+      {% block content %}{% endblock %}
+      <section id="chatHistory" class="chat-history" aria-live="polite" hidden><button id="closeChat" class="close chat-close" type="button" aria-label="Close conversation" title="Close conversation">&times;</button><div id="chatMessages"></div></section>
+      <footer class="chat-bar">
+        <span class="chat-orb">?</span>
+        <form id="queryForm">
+          <input id="queryInput" placeholder="Ask your planner..." aria-label="Planner query" />
+          <button class="chat-submit" type="submit" aria-label="Send planner query" title="Send planner query">&uarr;</button>
+        </form>
+      </footer>
+    </div>
+    <script src="{{ url_for('static', filename='js/planner.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

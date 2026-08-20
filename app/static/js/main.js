@@ -138,9 +138,7 @@ function budget() {
   $("#pieLabel").textContent = total
     ? `${Math.round((dep / total) * 100)}% in`
     : "No entries";
-  $("#budgetPie").style.background = total
-    ? `conic-gradient(var(--lime) ${(dep / total) * 100}%,var(--coral) 0)`
-    : "var(--line)";
+  $("#budgetPie").style.background = "var(--line)";
   $("#budgetEntries").innerHTML =
     state.entries
       .map(
@@ -157,7 +155,7 @@ function tab(t) {
   const tasks = t === "tasks";
   $("#taskWorkspace").hidden = !tasks;
   $("#budgetWorkspace").hidden = tasks;
-  $("#openAction").textContent = tasks ? "+ Add task" : "Audit";
+  $("#openAction").textContent = tasks ? "+ Add task" : "+ Audit";
   document
     .querySelectorAll("[data-tab]")
     .forEach((b) => b.classList.toggle("active", b.dataset.tab === t));

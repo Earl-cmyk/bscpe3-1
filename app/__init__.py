@@ -10,6 +10,7 @@ def create_app():
 	app.config["UPLOAD_FOLDER"] = str(UPLOAD_FOLDER)
 	app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_SIZE
 	app.config["TASK_PIN"] = TASK_PIN
+	app.config["BASE_DIR"] = str(DATABASE_PATH.parent.parent)
 
 	DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
 	UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)

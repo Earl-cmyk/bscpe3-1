@@ -1,12 +1,27 @@
+import sqlite3
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from flask import Blueprint, current_app, jsonify, render_template, request, send_from_directory
 from werkzeug.utils import secure_filename
 
 from .models import (
-	add_budget_entry, add_task, delete_task, get_budget_entry, get_task, list_budget_entries, list_tasks, update_budget_entry, update_task,
+	add_announcement,
+	add_budget_entry,
+	add_poll_vote,
+	add_task,
+	delete_task,
+	get_budget_entry,
+	get_task,
+	list_announcements,
+	list_budget_entries,
+	list_tasks,
+	list_upcoming_tasks,
+	search_content,
+	update_budget_entry,
+	update_task,
 )
 from .utils.query_parser import parse_query
 from config import ALLOWED_COURSES, ALLOWED_DIFFICULTIES
@@ -20,8 +35,31 @@ def index():
 	return render_template("index.html")
 
 
+@main.get("/tasks")
+def tasks_page():
+	return render_template("tasks.html")
+
+
+@main.get("/budget")
+def budget_page():
+	return render_template("budget.html")
+
+
+@main.get("/announcements")
+def announcements_page():
+	return render_template("announcements.html")
+
+
 def _payload():
 	return request.get_json(silent=True) or request.form
+
+
+@main.post("/api/verify-pin")
+def verify_pin():
+	data = _payload()
+	if data.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
+	return jsonify(ok=True)
 
 
 def _validate(data):
@@ -44,11 +82,96 @@ def get_tasks():
 	return jsonify(tasks=list_tasks(current_app.config["DATABASE_PATH"], request.args.get("search", "").strip()))
 
 
+@main.get("/api/search")
+def search():
+	term = request.args.get("q", "").strip()
+	if not term:
+		return jsonify(results=[])
+	return jsonify(results=search_content(current_app.config["DATABASE_PATH"], term))
+
+
 @main.get("/api/budget")
 def get_budget():
 	entries = list_budget_entries(current_app.config["DATABASE_PATH"])
 	balance = sum(entry["amount"] if entry["type"] == "deposit" else -entry["amount"] for entry in entries)
 	return jsonify(entries=entries, balance=round(balance, 2))
+
+
+@main.get("/api/dashboard")
+def get_dashboard():
+	entries = list_budget_entries(current_app.config["DATABASE_PATH"])
+	balance = sum(
+		entry["amount"] if entry["type"] == "deposit" and entry["status"] != "cancelled" else -entry["amount"]
+		if entry["type"] == "withdraw" and entry["status"] != "cancelled"
+		else 0
+		for entry in entries
+	)
+	return jsonify(
+		announcements=list_announcements(current_app.config["DATABASE_PATH"], limit=5),
+		balance=round(balance, 2),
+		deadlines=list_upcoming_tasks(current_app.config["DATABASE_PATH"], limit=3),
+	)
+
+
+@main.get("/api/announcements")
+def get_announcements():
+	return jsonify(announcements=list_announcements(current_app.config["DATABASE_PATH"]))
+
+
+@main.post("/api/announcements")
+def create_announcement():
+	data = request.form
+	if data.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
+	title = data.get("title", "").strip()
+	body = data.get("body", "").strip()
+	if not title or not body:
+		return jsonify(error="Title and message are required"), 400
+	link_url = data.get("link_url", "").strip() or None
+	if link_url:
+		parts = urlsplit(link_url)
+		if parts.scheme not in {"http", "https"} or not parts.netloc:
+			return jsonify(error="Link must be a valid HTTP or HTTPS URL"), 400
+	options = []
+	for option in request.form.getlist("options"):
+		label = option.strip()
+		if label and label not in options:
+			options.append(label)
+	if options and len(options) < 2:
+		return jsonify(error="A poll needs at least two options"), 400
+	attachment = request.files.get("attachment")
+	values = {"title": title, "body": body, "link_url": link_url}
+	if attachment and attachment.filename:
+		filename = secure_filename(attachment.filename)
+		if not filename:
+			return jsonify(error="Invalid attachment filename"), 400
+		stored = f"{uuid4().hex}_{filename}"
+		attachment.save(Path(current_app.config["UPLOAD_FOLDER"]) / stored)
+		values.update(attachment_name=filename, attachment_path=stored, attachment_type=attachment.mimetype or "application/octet-stream")
+	return jsonify(announcement=add_announcement(current_app.config["DATABASE_PATH"], values, options)), 201
+
+
+@main.post("/api/announcements/<int:announcement_id>/vote")
+def vote_announcement(announcement_id):
+	school_id = request.get_json(silent=True).get("school_id", "").strip() if request.is_json else request.form.get("school_id", "").strip()
+	try:
+		valid_ids = {
+			line.strip()
+			for line in Path(current_app.config["BASE_DIR"]) .joinpath("valid_school_ids.txt").read_text().splitlines()
+			if line.strip() and not line.lstrip().startswith("#")
+		}
+	except FileNotFoundError:
+		valid_ids = set()
+	if not school_id or school_id not in valid_ids:
+		return jsonify(error="Enter a valid School ID"), 400
+	data = request.get_json(silent=True) or request.form
+	try:
+		announcement = add_poll_vote(current_app.config["DATABASE_PATH"], announcement_id, int(data.get("option_id", 0)), school_id)
+	except sqlite3.IntegrityError:
+		return jsonify(error="This School ID has already voted"), 409
+	if announcement is None:
+		return jsonify(error="Announcement or poll option not found"), 404
+	return jsonify(announcement=announcement)
 
 
 @main.get("/api/query")

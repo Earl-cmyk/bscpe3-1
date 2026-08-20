@@ -13,6 +13,23 @@ python run.py
 
 Open `http://127.0.0.1:5000`.
 
+## Pages and announcements
+
+- `/` is the dark dashboard with recent announcements, current class-fund balance, and the next three deadlines.
+- `/tasks` is the dedicated task calendar.
+- `/budget` is the dedicated class-fund ledger.
+- `/announcements` is the announcement history and poll results page.
+
+Announcements require the configured PIN. Posts can include a title, message,
+HTTP(S) link, attachment, and optional poll options. Voting requires a School
+ID listed on its own line in `valid_school_ids.txt`; the database prevents the
+same School ID from voting twice on one poll.
+
+The app currently uses SQLite and local uploads. This is suitable for local
+hosting, but Vercel serverless storage is not durable across instances or
+deployments. Use hosted database and object storage services for production
+persistence on Vercel.
+
 The calendar and class fund workspaces are full-width panels that stay centered
 within the page shell. Frontend code is in `app/templates/index.html`,
 `app/static/css/style.css`, and `app/static/js/main.js`.

@@ -1,0 +1,2 @@
+# Add one valid School ID per line.
+# Blank lines and lines beginning with # are ignored.
