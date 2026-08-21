@@ -30,6 +30,17 @@
     </nav>
     <div class="shell">
       {% block content %}{% endblock %}
+      <section id="mediaModal" class="modal-backdrop" hidden aria-labelledby="mediaModalTitle" role="dialog" aria-modal="true">
+        <div class="modal media-modal">
+          <button class="close" type="button" data-close="mediaModal" aria-label="Close media viewer" title="Close media viewer">&times;</button>
+          <h2 id="mediaModalTitle">Attachment preview</h2>
+          <div id="mediaModalContent" class="media-modal-content"></div>
+          <div class="media-modal-footer">
+            <span id="mediaModalName" class="muted"></span>
+            <a id="mediaModalDownload" class="button button-quiet" href="#" download>Download</a>
+          </div>
+        </div>
+      </section>
       <section id="chatHistory" class="chat-history" aria-live="polite" hidden><button id="closeChat" class="close chat-close" type="button" aria-label="Close conversation" title="Close conversation">&times;</button><div id="chatMessages"></div></section>
       <footer class="chat-bar">
         <span class="chat-orb">?</span>
@@ -41,6 +52,7 @@
     </div>
     <script src="{{ url_for('static', filename='js/planner.js') }}"></script>
     <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/media-viewer.js') }}"></script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

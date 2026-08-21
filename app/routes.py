@@ -4,7 +4,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from uuid import uuid4
 
-from flask import Blueprint, current_app, jsonify, render_template, request, send_from_directory
+from flask import Blueprint, current_app, jsonify, redirect, render_template, request, send_from_directory, url_for
 from werkzeug.utils import secure_filename
 
 from .models import (
@@ -84,6 +84,7 @@ def _note_values(data):
 
 def _save_attachments(files):
 	attachments = []
+	storage = _storage_client()
 	for attachment in files:
 		if not attachment or not attachment.filename:
 			continue
@@ -91,9 +92,40 @@ def _save_attachments(files):
 		if not filename:
 			return None, "Invalid attachment filename"
 		stored = f"{uuid4().hex}_{filename}"
-		attachment.save(Path(current_app.config["UPLOAD_FOLDER"]) / stored)
+		_save_attachment(attachment, stored, storage)
 		attachments.append({"name": filename, "path": stored, "type": attachment.mimetype or "application/octet-stream"})
 	return attachments, None
+
+
+def _storage_client():
+	if not current_app.config.get("SUPABASE_URL") or not current_app.config.get("SUPABASE_SECRET_KEY"):
+		return None
+	from supabase import create_client
+	return create_client(current_app.config["SUPABASE_URL"], current_app.config["SUPABASE_SECRET_KEY"])
+
+
+def _save_attachment(attachment, stored, storage=None):
+	if storage:
+		storage.storage.from_(current_app.config["SUPABASE_STORAGE_BUCKET"]).upload(
+			stored,
+			attachment.stream.read(),
+			{"content-type": attachment.mimetype or "application/octet-stream", "upsert": "false"},
+		)
+	else:
+		attachment.save(Path(current_app.config["UPLOAD_FOLDER"]) / stored)
+
+
+def _attachment_url(path):
+	if not path:
+		return None
+	storage = _storage_client()
+	if not storage:
+		return url_for("main.uploaded_file", filename=path)
+	try:
+		result = storage.storage.from_(current_app.config["SUPABASE_STORAGE_BUCKET"]).create_signed_url(path, 3600)
+	except Exception:
+		return None
+	return result.get("signedURL") or result.get("signedUrl")
 
 
 @main.get("/api/notes")
@@ -236,7 +268,7 @@ def create_announcement():
 		if not filename:
 			return jsonify(error="Invalid attachment filename"), 400
 		stored = f"{uuid4().hex}_{filename}"
-		attachment.save(Path(current_app.config["UPLOAD_FOLDER"]) / stored)
+		_save_attachment(attachment, stored, _storage_client())
 		values.update(attachment_name=filename, attachment_path=stored, attachment_type=attachment.mimetype or "application/octet-stream")
 	return jsonify(announcement=add_announcement(current_app.config["DATABASE_PATH"], values, options)), 201
 
@@ -259,6 +291,11 @@ def vote_announcement(announcement_id):
 		announcement = add_poll_vote(current_app.config["DATABASE_PATH"], announcement_id, int(data.get("option_id", 0)), school_id)
 	except sqlite3.IntegrityError:
 		return jsonify(error="This School ID has already voted"), 409
+	except Exception as error:
+		from psycopg.errors import UniqueViolation
+		if isinstance(error, UniqueViolation):
+			return jsonify(error="This School ID has already voted"), 409
+		raise
 	if announcement is None:
 		return jsonify(error="Announcement or poll option not found"), 404
 	return jsonify(announcement=announcement)
@@ -311,7 +348,7 @@ def create_task():
 		if not filename:
 			return jsonify(error="Invalid attachment filename"), 400
 		stored = f"{uuid4().hex}_{filename}"
-		attachment.save(Path(current_app.config["UPLOAD_FOLDER"]) / stored)
+		_save_attachment(attachment, stored, _storage_client())
 		values.update(attachment_name=filename, attachment_path=stored, attachment_type=attachment.mimetype or "application/octet-stream")
 	return jsonify(task=add_task(current_app.config["DATABASE_PATH"], values)), 201
 
@@ -378,6 +415,16 @@ def remove_task(task_id):
 
 @main.get("/uploads/<path:filename>")
 def uploaded_file(filename):
+	storage = _storage_client()
+	if storage:
+		try:
+			result = storage.storage.from_(current_app.config["SUPABASE_STORAGE_BUCKET"]).create_signed_url(filename, 3600)
+		except Exception:
+			return jsonify(error="Attachment is unavailable"), 404
+		url = result.get("signedURL") or result.get("signedUrl")
+		if not url:
+			return jsonify(error="Attachment is unavailable"), 404
+		return redirect(url)
 	return send_from_directory(current_app.config["UPLOAD_FOLDER"], filename, as_attachment=request.args.get("download") == "1")
 
 

@@ -300,6 +300,62 @@ body {
   background: #000;
 }
 
+.media-trigger,
+.announcement-attachment {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: zoom-in;
+  text-align: left;
+}
+
+.announcement-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  padding: 6px 9px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.announcement-attachment img {
+  width: 48px;
+  height: 38px;
+  object-fit: cover;
+  background: #000;
+}
+
+.media-modal {
+  width: min(920px, 100%);
+}
+
+.media-modal-content {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  background: #101613;
+}
+
+.media-modal-media {
+  display: block;
+  width: 100%;
+  max-height: min(68vh, 680px);
+  object-fit: contain;
+}
+
+.media-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+}
+
 .note-media figcaption,
 .note-attachment {
   display: flex;

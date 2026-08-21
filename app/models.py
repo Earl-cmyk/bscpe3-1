@@ -3,10 +3,36 @@ from datetime import datetime, timezone
 from contextlib import contextmanager
 
 
+class _PostgresConnection:
+	def __init__(self, connection):
+		self._connection = connection
+
+	def execute(self, query, params=()):
+		return self._connection.execute(query.replace("?", "%s"), params)
+
+	def commit(self):
+		self._connection.commit()
+
+	def rollback(self):
+		self._connection.rollback()
+
+	def close(self):
+		self._connection.close()
+
+
 @contextmanager
 def get_connection(database_path):
-	connection = sqlite3.connect(database_path)
-	connection.row_factory = sqlite3.Row
+	is_postgres = str(database_path).startswith(("postgres://", "postgresql://"))
+	if is_postgres:
+		from psycopg import connect
+		from psycopg.rows import dict_row
+
+		connection = _PostgresConnection(connect(database_path, row_factory=dict_row))
+	else:
+		connection = sqlite3.connect(database_path)
+		connection.row_factory = sqlite3.Row
+	if is_postgres:
+		connection.execute("SET TIME ZONE 'UTC'")
 	try:
 		yield connection
 		connection.commit()
@@ -18,6 +44,8 @@ def get_connection(database_path):
 
 
 def init_db(database_path):
+	if str(database_path).startswith(("postgres://", "postgresql://")):
+		return
 	with get_connection(database_path) as connection:
 		connection.execute("PRAGMA foreign_keys = ON")
 		connection.execute(
@@ -169,6 +197,10 @@ def _row_to_dict(row):
 	return dict(row) if row else None
 
 
+def _inserted_id(row):
+	return row["id"] if isinstance(row, dict) else row[0]
+
+
 def list_tasks(database_path, search=""):
 	with get_connection(database_path) as connection:
 		query = "SELECT * FROM tasks"
@@ -183,10 +215,11 @@ def list_tasks(database_path, search=""):
 
 def list_upcoming_tasks(database_path, limit=3):
 	with get_connection(database_path) as connection:
+		completed_value = "FALSE" if str(database_path).startswith(("postgres://", "postgresql://")) else "0"
 		rows = connection.execute(
-			"""
+			f"""
 			SELECT * FROM tasks
-			WHERE completed = 0 AND deadline >= ?
+			WHERE completed = {completed_value} AND deadline >= ?
 			ORDER BY deadline, id
 			LIMIT ?
 			""",
@@ -204,10 +237,10 @@ def add_task(database_path, task):
 	now = datetime.now(timezone.utc).isoformat()
 	with get_connection(database_path) as connection:
 		cursor = connection.execute(
-			"INSERT INTO tasks (title, course, description, deadline, difficulty, attachment_name, attachment_path, attachment_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO tasks (title, course, description, deadline, difficulty, attachment_name, attachment_path, attachment_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
 			(task["title"], task["course"], task["description"], task["deadline"], task["difficulty"], task.get("attachment_name"), task.get("attachment_path"), task.get("attachment_type"), now, now),
 		)
-	return get_task(database_path, cursor.lastrowid)
+	return get_task(database_path, _inserted_id(cursor.fetchone()))
 
 
 def update_task(database_path, task_id, values):
@@ -261,15 +294,16 @@ def add_note(database_path, note):
 	now = datetime.now(timezone.utc).isoformat()
 	with get_connection(database_path) as connection:
 		cursor = connection.execute(
-			"INSERT INTO notes (title, course, caption, attachment_name, attachment_path, attachment_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT INTO notes (title, course, caption, attachment_name, attachment_path, attachment_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
 			(note["title"], note["course"], note["caption"], None, None, None, now, now),
 		)
+		note_id = _inserted_id(cursor.fetchone())
 		for attachment in note.get("attachments", []):
 			connection.execute(
 				"INSERT INTO note_attachments (note_id, name, path, type, created_at) VALUES (?, ?, ?, ?, ?)",
-				(cursor.lastrowid, attachment["name"], attachment["path"], attachment["type"], now),
+				(note_id, attachment["name"], attachment["path"], attachment["type"], now),
 			)
-	return get_note(database_path, cursor.lastrowid)
+	return get_note(database_path, note_id)
 
 
 def update_note(database_path, note_id, values):
@@ -311,10 +345,10 @@ def list_budget_entries(database_path):
 def add_budget_entry(database_path, entry):
 	with get_connection(database_path) as connection:
 		cursor = connection.execute(
-			"INSERT INTO budget_entries (type, amount, reason, status, created_at) VALUES (?, ?, ?, ?, ?)",
+			"INSERT INTO budget_entries (type, amount, reason, status, created_at) VALUES (?, ?, ?, ?, ?) RETURNING id",
 			(entry["type"], entry["amount"], entry["reason"], entry.get("status", "pending"), datetime.now(timezone.utc).isoformat()),
 		)
-		row = connection.execute("SELECT * FROM budget_entries WHERE id = ?", (cursor.lastrowid,)).fetchone()
+		row = connection.execute("SELECT * FROM budget_entries WHERE id = ?", (_inserted_id(cursor.fetchone()),)).fetchone()
 	return _row_to_dict(row)
 
 
@@ -405,7 +439,7 @@ def add_announcement(database_path, announcement, options=None):
 			"""
 			INSERT INTO announcements
 			(title, body, link_url, attachment_name, attachment_path, attachment_type, created_at, updated_at)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
 			""",
 			(
 				announcement["title"],
@@ -418,7 +452,7 @@ def add_announcement(database_path, announcement, options=None):
 				now,
 			),
 		)
-		announcement_id = cursor.lastrowid
+		announcement_id = _inserted_id(cursor.fetchone())
 		for position, label in enumerate(options or []):
 			connection.execute(
 				"INSERT INTO poll_options (announcement_id, label, position) VALUES (?, ?, ?)",
