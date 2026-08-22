@@ -2,8 +2,6 @@
 {% block title %}Notes | R3-1NFORCE{% endblock %}
 {% block content %}
 <main class="workspace-page">
-  <div class="page-heading">
-    <div><p class="eyebrow">NOTES</p><h1>Class Notes</h1></div>
     <div class="page-actions">
       <select id="courseFilter" class="button button-quiet">
         <option value="">All Courses</option>
@@ -18,7 +16,6 @@
       </select>
       <button id="openNote" class="button button-primary icon-action" aria-label="Add post" title="Add post">+</button>
     </div>
-  </div>
   <section id="notesFeed" class="announcement-history"><p class="muted">Loading notes...</p></section>
 </main>
 <div id="pinModal" class="modal-backdrop" hidden><form id="pinForm" class="modal small-modal"><button type="button" class="close" data-close="pinModal" aria-label="Close">&times;</button><p class="eyebrow">PRIVATE POST</p><h2>Enter your PIN</h2><input id="pinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" required /><p id="pinError" class="form-error" hidden></p><button class="button button-primary full-button icon-action" type="submit" aria-label="Continue">&rarr;</button></form></div>

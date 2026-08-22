@@ -19,11 +19,11 @@
           <a class="nav-link {% if request.path == '/notes' %}active{% endif %}" href="{{ url_for('main.notes_page') }}" aria-label="Notes" title="Notes">📓</a>
           <a class="nav-link {% if request.path == '/budget' %}active{% endif %}" href="{{ url_for('main.budget_page') }}" aria-label="Class fund" title="Class fund">💰</a>
           <div class="global-search">
-            <form id="globalSearchForm" role="search">
+            <form id="globalSearchForm" role="search" autocomplete="off">
               <span aria-hidden="true">&#128269;</span>
-              <input id="globalSearchInput" type="search" placeholder="Search" autocomplete="off" aria-label="Search tasks and announcements" />
+              <input id="globalSearchInput" type="search" placeholder="Search notes, announcements, deadlines" autocomplete="off" aria-label="Search notes, announcements, and deadlines" aria-controls="globalSearchResults" aria-expanded="false" />
             </form>
-            <div id="globalSearchResults" class="global-search-results" hidden></div>
+            <div id="globalSearchResults" class="global-search-results" hidden role="dialog" aria-label="Search results"><div class="search-tools"><span>Search results</span><button id="closeSearch" class="close" type="button" aria-label="Close search results">&times;</button></div><div class="search-filters" role="group" aria-label="Filter search results"><button type="button" class="search-chip active" data-search-kind="">All</button><button type="button" class="search-chip" data-search-kind="Note">Notes</button><button type="button" class="search-chip" data-search-kind="Announcement">Announcements</button><button type="button" class="search-chip" data-search-kind="Task">Deadlines</button></div><div id="searchResultList"></div></div>
           </div>
         </div>
       </div>

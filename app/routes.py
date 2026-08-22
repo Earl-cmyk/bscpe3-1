@@ -209,7 +209,10 @@ def search():
 	term = request.args.get("q", "").strip()
 	if not term:
 		return jsonify(results=[])
-	return jsonify(results=search_content(current_app.config["DATABASE_PATH"], term))
+	kind = request.args.get("kind", "").strip()
+	if kind not in ("", "Task", "Note", "Announcement"):
+		return jsonify(error="Invalid result type"), 400
+	return jsonify(results=search_content(current_app.config["DATABASE_PATH"], term, kind=kind, course=request.args.get("course", "").strip()))
 
 
 @main.get("/api/budget")
@@ -399,6 +402,10 @@ def task_detail(task_id):
 		task = get_task(current_app.config["DATABASE_PATH"], task_id)
 		return (jsonify(task=task), 200) if task else (jsonify(error="Task not found"), 404)
 	data = _payload()
+	if data.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
+	if not get_task(current_app.config["DATABASE_PATH"], task_id):
+		return jsonify(error="Task not found"), 404
 	error = _validate({**(get_task(current_app.config["DATABASE_PATH"], task_id) or {}), **data})
 	if error:
 		return jsonify(error=error), 400
@@ -407,6 +414,9 @@ def task_detail(task_id):
 
 @main.delete("/api/tasks/<int:task_id>")
 def remove_task(task_id):
+	data = _payload()
+	if data.get("pin") != current_app.config["TASK_PIN"]:
+		return jsonify(error="Invalid PIN"), 403
 	if not get_task(current_app.config["DATABASE_PATH"], task_id):
 		return jsonify(error="Task not found"), 404
 	delete_task(current_app.config["DATABASE_PATH"], task_id)

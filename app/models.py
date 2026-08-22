@@ -399,37 +399,59 @@ def list_announcements(database_path, limit=None):
 		return [_announcement_with_options(connection, row) for row in connection.execute(query, params).fetchall()]
 
 
-def search_content(database_path, term, limit=12):
+def search_content(database_path, term, limit=12, course="", kind=""):
 	pattern = f"%{term}%"
+	course_pattern = f"%{course}%"
 	with get_connection(database_path) as connection:
-		tasks = connection.execute(
-			"""
+		params = [pattern, pattern, pattern]
+		task_query = """
 			SELECT id, title, description AS detail, course AS meta, created_at
 			FROM tasks
-			WHERE title LIKE ? OR description LIKE ? OR course LIKE ?
-			ORDER BY created_at DESC, id DESC
-			LIMIT ?
-			""",
-			(pattern, pattern, pattern, limit),
-		).fetchall()
-		announcements = connection.execute(
-			"""
+			WHERE (title LIKE ? OR description LIKE ? OR course LIKE ?)
+		"""
+		if course:
+			task_query += " AND course LIKE ?"
+			params.append(course_pattern)
+		task_query += " ORDER BY created_at DESC, id DESC LIMIT ?"
+		params.append(limit)
+		tasks = connection.execute(task_query, params).fetchall()
+		announcement_params = [pattern, pattern]
+		announcement_query = """
 			SELECT id, title, body AS detail, 'Announcement' AS meta, created_at
 			FROM announcements
-			WHERE title LIKE ? OR body LIKE ?
-			ORDER BY created_at DESC, id DESC
-			LIMIT ?
-			""",
-			(pattern, pattern, limit),
-		).fetchall()
-	results = [
-		{**_row_to_dict(row), "kind": "Task", "url": "/tasks"}
-		for row in tasks
-	] + [
-		{**_row_to_dict(row), "kind": "Announcement", "url": "/announcements"}
-		for row in announcements
-	]
-	return sorted(results, key=lambda item: (item["created_at"], item["id"]), reverse=True)[:limit]
+			WHERE (title LIKE ? OR body LIKE ?)
+		"""
+		if course:
+			announcement_query += " AND body LIKE ?"
+			announcement_params.append(course_pattern)
+		announcement_query += " ORDER BY created_at DESC, id DESC LIMIT ?"
+		announcement_params.append(limit)
+		announcements = connection.execute(announcement_query, announcement_params).fetchall()
+		note_params = [pattern, pattern, pattern]
+		note_query = """
+			SELECT id, title, caption AS detail, course AS meta, created_at
+			FROM notes
+			WHERE (title LIKE ? OR caption LIKE ? OR course LIKE ?)
+		"""
+		if course:
+			note_query += " AND course LIKE ?"
+			note_params.append(course_pattern)
+		note_query += " ORDER BY created_at DESC, id DESC LIMIT ?"
+		note_params.append(limit)
+		notes = connection.execute(note_query, note_params).fetchall()
+	results = []
+	if kind in ("", "Task"):
+		results.extend({**_row_to_dict(row), "kind": "Task", "url": "/tasks"} for row in tasks)
+	if kind in ("", "Announcement"):
+		results.extend({**_row_to_dict(row), "kind": "Announcement", "url": f"/announcements#announcement-{row['id']}"} for row in announcements)
+	if kind in ("", "Note"):
+		results.extend({**_row_to_dict(row), "kind": "Note", "url": f"/notes#note-{row['id']}"} for row in notes)
+	for result in results:
+		text = f"{result['title']} {result.get('detail') or ''} {result.get('meta') or ''}".lower()
+		term_lower = term.lower()
+		result["score"] = (text.count(term_lower) * 3) + (result["title"].lower().count(term_lower) * 5)
+		result["snippet"] = (result.get("detail") or "")[:180]
+	return sorted(results, key=lambda item: (item["score"], item["created_at"], item["id"]), reverse=True)[:limit]
 
 
 def add_announcement(database_path, announcement, options=None):

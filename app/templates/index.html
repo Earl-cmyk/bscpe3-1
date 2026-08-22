@@ -2,13 +2,12 @@
 {% block title %}Home | R3-1NFORCE{% endblock %}
 {% block content %}
 <main class="dashboard">
-  <section class="dashboard-hero">
-    <div><p class="eyebrow">BLOCK CONTROL ROOM</p></div>
+  <div class="dashboard-actions">
     <button id="openAnnouncement" class="button button-primary icon-action" aria-label="Post announcement" title="Post announcement">+</button>
-  </section>
+  </div>
   <section class="dashboard-grid">
-    <article class="dashboard-card announcement-feed"><div class="card-heading"><div><p class="eyebrow">NOTICEBOARD</p><h2>Announcements</h2></div><a href="{{ url_for('main.announcements_page') }}" class="text-link icon-action" aria-label="Announcement history" title="Announcement history">&#128337;</a></div><div id="announcementFeed" class="announcement-list"><p class="muted">Loading announcements...</p></div></article>
-    <article class="dashboard-card balance-card"><p class="eyebrow">CLASS FUND</p><strong id="dashboardBalance">0.00</strong><a href="{{ url_for('main.budget_page') }}" class="button button-quiet icon-action" aria-label="Open class fund" title="Open class fund">&nearr;</a></article>
+    <article class="dashboard-card announcement-feed"><div class="card-heading"><h2>Announcements</h2><a href="{{ url_for('main.announcements_page') }}" class="text-link icon-action" aria-label="Announcement history" title="Announcement history">&#128337;</a></div><div id="announcementFeed" class="announcement-list"><p class="muted">Loading announcements...</p></div></article>
+    <article class="dashboard-card balance-card"><strong id="dashboardBalance">0.00</strong><a href="{{ url_for('main.budget_page') }}" class="button button-quiet icon-action" aria-label="Open class fund" title="Open class fund">&nearr;</a></article>
     <article class="dashboard-card deadline-card"><div class="card-heading"><span class="section-symbol" title="Upcoming deadlines">&star;</span><a href="{{ url_for('main.tasks_page') }}" class="text-link icon-action" aria-label="Open calendar" title="Open calendar">&nearr;</a></div><div id="upcomingDeadlines" class="deadline-list"><p class="muted">Loading...</p></div></article>
   </section>
 </main>

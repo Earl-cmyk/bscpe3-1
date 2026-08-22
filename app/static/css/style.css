@@ -1,34 +1,216 @@
+.task-planner,
+.task-planner * {
+  box-sizing: border-box;
+}
+
+/* Final dark task-planner palette. Keep this after legacy calendar overrides. */
+:root {
+  --ink: #f5f2f0;
+  --muted: #b8adb0;
+  --line: #3a2930;
+  --paper: #0b0a0c;
+  --surface: #171216;
+  --maroon: #642033;
+  --maroon-bright: #d95768;
+  --soft-red: #2a151d;
+  --coral: #ee7180;
+}
+
+.workspace-page,
+.calendar-panel,
+.calendar,
+.month-grid,
+.day-cell,
+.week-column,
+.day-view,
+.day-items,
+.week-items,
+.task-detail {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+}
+
+.calendar-panel {
+  border: 1px solid var(--line) !important;
+  padding: clamp(16px, 3vw, 28px) !important;
+}
+
+.calendar-toolbar {
+  gap: 16px;
+}
+
+.weekday,
+.day-cell,
+.week-column,
+.day-view {
+  border-color: var(--line) !important;
+}
+
+.day-cell:hover,
+.day-cell.muted {
+  background: #100d10 !important;
+}
+
+.week-column header,
+.day-summary {
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+.week-column header span,
+.week-item time,
+.day-item time,
+.day-summary small,
+.task-chip small,
+.week-item small,
+.day-item small,
+.empty-slot {
+  color: var(--muted) !important;
+}
+
+.task-chip,
+.week-item,
+.day-item {
+  background: #21161c !important;
+  border: 1px solid #633040 !important;
+  border-left: 3px solid var(--coral) !important;
+  color: var(--ink) !important;
+  padding: 10px !important;
+}
+
+.task-chip:hover,
+.week-item:hover,
+.day-item:hover {
+  background: var(--soft-red) !important;
+  border-color: var(--maroon-bright) !important;
+}
+
+.task-chip strong,
+.week-item strong,
+.day-item strong {
+  color: var(--ink) !important;
+}
+
+.icon-button,
+.button-quiet,
+.view-switcher button {
+  background: #151116 !important;
+  border: 1px solid #633040 !important;
+  color: var(--ink) !important;
+}
+
+.button-primary,
+.view-switcher button.active {
+  background: var(--maroon) !important;
+  border-color: var(--maroon-bright) !important;
+  color: var(--ink) !important;
+}
+
+.icon-button:hover,
+.button-quiet:hover,
+.view-switcher button:hover {
+  background: #2a1820 !important;
+}
+
+.button-danger {
+  background: #261219 !important;
+  border-color: var(--maroon-bright) !important;
+  color: #ff9aa4 !important;
+}
+
+.day-number-large,
+.day-number {
+  color: var(--coral) !important;
+}
+
+@media (max-width: 720px) {
+  .calendar-panel {
+    padding: 14px !important;
+  }
+
+  .calendar-controls {
+    gap: 5px;
+  }
+
+  .view-switcher button {
+    padding-inline: 10px;
+  }
+}
+
+/* Keep page chrome black and let actions communicate through hover states. */
+.shell {
+  background: transparent;
+}
+
+.dashboard,
+.workspace-page,
+.dashboard-card,
+.calendar-panel,
+.budget-panel,
+.side-panel {
+  background: #000000;
+}
+
+.dashboard-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 32px 0 18px;
+}
+
+.button,
+.icon-button,
+.view-switcher button {
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.button-primary:hover,
+.button-primary:focus-visible,
+.button-quiet:hover,
+.button-quiet:focus-visible,
+.icon-button:hover,
+.icon-button:focus-visible,
+.view-switcher button:hover,
+.view-switcher button:focus-visible,
+.icon-action:hover,
+.icon-action:focus-visible {
+  background: #34151b;
+  border-color: #d65a68;
+  color: #fff8f7;
+}
+
+.dashboard-card,
+.calendar-panel,
+.budget-panel,
+.side-panel {
+  box-shadow: none;
+}
 .brand-mark {
   width: 42px;
   height: 42px;
   font-size: 11px;
 }
 
-/* Dark maroon workspace theme. */
+/* Fusion workspace theme. */
 :root {
-  --ink: #fff8f7;
-  --muted: #cbb7b6;
-  --line: #563436;
-  --paper: #241718;
-  --surface: #301d1f;
-  --maroon: #8f2837;
-  --maroon-bright: #d65a68;
-  --soft-red: #54262c;
-  --lime: #d65a68;
-  --coral: #e16b75;
-  --blue: #64323c;
+  --ink: #f5f2f0;
+  --muted: #27161c;
+  --line: #1f1f2e;
+  --paper: #0a0a0c;
+  --surface: #121217;
+  --maroon: #9e2a3b;
+  --maroon-bright: #e63946;
+  --soft-red: #241219;
+  --lime: #e63946;
+  --coral: #ff6670;
+  --blue: #343448;
 }
 
 html,
 body {
-  background: #160f10;
+  background: #0a0a0c;
   color: var(--ink);
 }
-
-body {
-  background: #160f10;
-}
-
 .navbar,
 .dashboard-card,
 .calendar-panel,
@@ -79,9 +261,105 @@ body {
   cursor: pointer;
   list-style: none;
 }
-
 .history-menu summary::-webkit-details-marker {
   display: none;
+}
+
+/* Search popup and content-card refinements. */
+.global-search-results {
+  max-height: min(520px, 70vh);
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 40px #000000cc;
+}
+
+.search-tools,
+.search-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-tools {
+  justify-content: space-between;
+  padding: 2px 4px 10px;
+  color: var(--muted);
+  font: 500 10px "DM Mono", monospace;
+  text-transform: uppercase;
+}
+
+.search-tools .close {
+  position: static;
+  min-width: 24px;
+  padding: 0;
+  color: var(--muted);
+}
+
+.search-filters {
+  justify-content: flex-start;
+  overflow-x: auto;
+  padding: 0 0 10px;
+}
+
+.search-chip {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.search-chip:hover,
+.search-chip.active {
+  border-color: var(--maroon-bright);
+  background: var(--soft-red);
+  color: var(--ink);
+}
+
+.search-result {
+  align-items: start;
+  border-bottom-color: var(--line);
+}
+
+.search-result em {
+  display: block;
+  overflow: hidden;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-item {
+  padding: 24px;
+  border-radius: 8px;
+  scroll-margin-top: 92px;
+}
+
+@media (max-width: 640px) {
+  .global-search-results {
+    position: fixed;
+    top: 66px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
+  .search-result {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+
+  .search-result time {
+    display: none;
+  }
 }
 
 .history-menu[open] > a {
@@ -954,7 +1232,7 @@ body {
   text-align: left;
   border: 0;
   border-left: 3px solid var(--coral);
-  background: #f6dfd9;
+  background: #1a1111;
   padding: 11px;
   color: var(--ink);
 }
@@ -1068,7 +1346,7 @@ body {
   gap: 4px;
   border: 1px solid var(--line);
   padding: 4px;
-  background: #f8faf6b3;
+  background: #310404b3;
 }
 .tab-button {
   border: 0;
@@ -1612,7 +1890,33 @@ button {
   border: 0;
   border-left: 3px solid var(--coral);
   background: #f6dfd9;
-  color: var(--ink);
+  color: #35151b;
+  .task-chip strong,
+  .week-item strong,
+  .day-item strong {
+    display: block;
+    color: inherit;
+    font-weight: 800;
+  }
+  .task-chip small,
+  .week-item small,
+  .day-item small {
+    display: block;
+    margin-top: 3px;
+    color: #6f3d45;
+    font-size: 10px;
+  }
+  .week-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+  .week-column { min-width: 0; border: 1px solid var(--line); background: var(--surface); }
+  .week-column header { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--line); color: var(--muted); }
+  .week-items, .day-items { display: grid; gap: 8px; padding: 10px; }
+  .week-item, .day-item { display: block; width: 100%; padding: 10px; border: 1px solid #7d2938; background: #2b0404; color: #35151b; text-align: left; }
+  .day-view { border: 1px solid var(--line); background: var(--surface); }
+  .day-summary { display: flex; align-items: center; gap: 16px; padding: 24px; border-bottom: 1px solid var(--line); }
+  .day-summary small { display: block; margin-top: 5px; color: var(--muted); }
+  .day-number-large { font: 500 42px "DM Mono", monospace; color: var(--coral); }
+  .empty-slot { padding: 10px; color: var(--muted); }
+  .button-danger { border: 1px solid #b84032; background: transparent; color: #e66b5b; }
   padding: 5px 6px;
   margin-top: 7px;
   width: 100%;
@@ -1809,7 +2113,7 @@ button {
 .form-grid select,
 .form-grid textarea {
   border: 1px solid var(--line);
-  background: #fff;
+  background: #1b0202;
   padding: 11px;
   outline-color: var(--coral);
   color: var(--ink);
@@ -1973,7 +2277,7 @@ button {
 /* Final black-and-maroon surface system. */
 :root {
   --ink: #ffffff;
-  --muted: #c9b8b9;
+  --muted: #160506;
   --line: #8f2837;
   --paper: #000000;
   --surface: #000000;
@@ -2131,6 +2435,52 @@ body {
 .budget-entry strong,
 .budget-entry small {
   overflow-wrap: anywhere;
+}
+
+/* Keep page content black and float primary actions below the site header. */
+html,
+body {
+  background: #000 !important;
+}
+
+.shell {
+  background: transparent !important;
+}
+
+.workspace-page,
+.dashboard {
+  background: transparent !important;
+}
+
+#openAnnouncement,
+#openTask,
+#openNote,
+#openAudit {
+  position: fixed;
+  top: 88px;
+  right: 24px;
+  z-index: 15;
+  min-width: 44px;
+  box-shadow: 0 8px 20px #00000066;
+}
+
+#openAnnouncement:hover,
+#openTask:hover,
+#openNote:hover,
+#openAudit:hover {
+  background: #421522 !important;
+  border-color: var(--maroon-bright);
+  color: var(--ink);
+}
+
+@media (max-width: 720px) {
+  #openAnnouncement,
+  #openTask,
+  #openNote,
+  #openAudit {
+    top: 80px;
+    right: 16px;
+  }
 }
 
 /* Authoritative navbar alignment override. */
