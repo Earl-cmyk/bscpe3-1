@@ -1,4 +1,3 @@
-return `<article id="note-${note.id}" class="history-item" data-note-id="${note.id}">`
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
 function noteMarkup(note) {
