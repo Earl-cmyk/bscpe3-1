@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from datetime import datetime, timezone
 from contextlib import contextmanager
@@ -80,6 +81,41 @@ def init_db(database_path):
 		)
 		connection.execute(
 			"""
+			CREATE TABLE IF NOT EXISTS wallets (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				name TEXT NOT NULL UNIQUE,
+				course TEXT,
+				active INTEGER NOT NULL DEFAULT 1,
+				created_at TEXT NOT NULL,
+				updated_at TEXT NOT NULL
+			)
+			"""
+		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS contributors (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				name TEXT NOT NULL UNIQUE,
+				active INTEGER NOT NULL DEFAULT 1,
+				created_at TEXT NOT NULL,
+				updated_at TEXT NOT NULL
+			)
+			"""
+		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS budget_audit_events (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				entry_id INTEGER,
+				event_type TEXT NOT NULL,
+				actor TEXT NOT NULL DEFAULT 'system',
+				payload TEXT NOT NULL DEFAULT '{}',
+				created_at TEXT NOT NULL
+			)
+			"""
+		)
+		connection.execute(
+			"""
 			CREATE TABLE IF NOT EXISTS announcements (
 				id INTEGER PRIMARY KEY AUTOINCREMENT,
 				title TEXT NOT NULL,
@@ -142,6 +178,17 @@ def init_db(database_path):
 			)
 			"""
 		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS no_class_exceptions (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				date TEXT NOT NULL,
+				course TEXT NOT NULL,
+				created_at TEXT NOT NULL,
+				UNIQUE(date, course)
+			)
+			"""
+		)
 		legacy_notes = connection.execute(
 			"SELECT id, attachment_name, attachment_path, attachment_type, created_at FROM notes WHERE attachment_path IS NOT NULL"
 		).fetchall()
@@ -171,6 +218,31 @@ def init_db(database_path):
 		budget_columns = {row["name"] for row in connection.execute("PRAGMA table_info(budget_entries)").fetchall()}
 		if "status" not in budget_columns:
 			connection.execute("ALTER TABLE budget_entries ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'")
+		for column, definition in {
+			"wallet_id": "INTEGER",
+			"course": "TEXT",
+			"contributor_id": "INTEGER",
+			"attachment_name": "TEXT",
+			"attachment_path": "TEXT",
+			"attachment_type": "TEXT",
+		}.items():
+			if column not in budget_columns:
+				connection.execute(f"ALTER TABLE budget_entries ADD COLUMN {column} {definition}")
+		from config import ALLOWED_COURSES
+		now = datetime.now(timezone.utc).isoformat()
+		connection.execute(
+			"INSERT OR IGNORE INTO wallets (name, course, created_at, updated_at) VALUES (?, NULL, ?, ?)",
+			("Unassigned", now, now),
+		)
+		for course in ALLOWED_COURSES:
+			connection.execute(
+				"INSERT OR IGNORE INTO wallets (name, course, created_at, updated_at) VALUES (?, ?, ?, ?)",
+			(course, course, now, now),
+			)
+		unassigned = connection.execute("SELECT id FROM wallets WHERE name = 'Unassigned'").fetchone()[0]
+		connection.execute("UPDATE budget_entries SET wallet_id = ? WHERE wallet_id IS NULL", (unassigned,))
+		connection.execute("CREATE INDEX IF NOT EXISTS idx_budget_entries_wallet_created ON budget_entries (wallet_id, created_at DESC, id DESC)")
+		connection.execute("CREATE INDEX IF NOT EXISTS idx_budget_audit_events_entry ON budget_audit_events (entry_id, created_at DESC, id DESC)")
 		legacy = connection.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='deadlines'").fetchone()
 		if legacy and connection.execute("SELECT COUNT(*) FROM tasks").fetchone()[0] == 0:
 			rows = connection.execute("SELECT title, due_date, notes, completed FROM deadlines").fetchall()
@@ -240,7 +312,9 @@ def add_task(database_path, task):
 			"INSERT INTO tasks (title, course, description, deadline, difficulty, attachment_name, attachment_path, attachment_type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
 			(task["title"], task["course"], task["description"], task["deadline"], task["difficulty"], task.get("attachment_name"), task.get("attachment_path"), task.get("attachment_type"), now, now),
 		)
-	return get_task(database_path, _inserted_id(cursor.fetchone()))
+		task_id = _inserted_id(cursor.fetchone())
+		cursor.close()
+	return get_task(database_path, task_id)
 
 
 def update_task(database_path, task_id, values):
@@ -337,31 +411,93 @@ def delete_note(database_path, note_id):
 		connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
 
 
-def list_budget_entries(database_path):
+def list_wallets(database_path, active_only=False):
 	with get_connection(database_path) as connection:
-		rows = connection.execute("SELECT * FROM budget_entries ORDER BY created_at DESC, id DESC").fetchall()
+		query = "SELECT * FROM wallets"
+		if active_only:
+			query += " WHERE active = 1"
+		query += " ORDER BY CASE WHEN course IS NULL THEN 1 ELSE 0 END, name"
+		return [_row_to_dict(row) for row in connection.execute(query).fetchall()]
+
+
+def get_wallet(database_path, wallet_id):
+	with get_connection(database_path) as connection:
+		return _row_to_dict(connection.execute("SELECT * FROM wallets WHERE id = ?", (wallet_id,)).fetchone())
+
+
+def add_wallet(database_path, wallet):
+	now = datetime.now(timezone.utc).isoformat()
+	with get_connection(database_path) as connection:
+		cursor = connection.execute("INSERT INTO wallets (name, course, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?) RETURNING id", (wallet["name"], wallet.get("course"), wallet.get("active", 1), now, now))
+		wallet_id = _inserted_id(cursor.fetchone())
+		cursor.close()
+	return get_wallet(database_path, wallet_id)
+
+
+def list_contributors(database_path, active_only=False):
+	with get_connection(database_path) as connection:
+		query = "SELECT * FROM contributors"
+		if active_only:
+			query += " WHERE active = 1"
+		query += " ORDER BY name"
+		return [_row_to_dict(row) for row in connection.execute(query).fetchall()]
+
+
+def add_contributor(database_path, name):
+	now = datetime.now(timezone.utc).isoformat()
+	with get_connection(database_path) as connection:
+		cursor = connection.execute("INSERT INTO contributors (name, created_at, updated_at) VALUES (?, ?, ?) RETURNING id", (name, now, now))
+		contributor_id = _inserted_id(cursor.fetchone())
+		cursor.close()
+		return _row_to_dict(connection.execute("SELECT * FROM contributors WHERE id = ?", (contributor_id,)).fetchone())
+
+
+def list_budget_entries(database_path, wallet_id=None):
+	with get_connection(database_path) as connection:
+		query = "SELECT budget_entries.*, wallets.name AS wallet_name, contributors.name AS contributor_name FROM budget_entries LEFT JOIN wallets ON wallets.id = budget_entries.wallet_id LEFT JOIN contributors ON contributors.id = budget_entries.contributor_id"
+		params = []
+		if wallet_id:
+			query += " WHERE budget_entries.wallet_id = ?"
+			params.append(wallet_id)
+		query += " ORDER BY budget_entries.created_at DESC, budget_entries.id DESC"
+		rows = connection.execute(query, params).fetchall()
 		return [_row_to_dict(row) for row in rows]
 
 
 def add_budget_entry(database_path, entry):
 	with get_connection(database_path) as connection:
 		cursor = connection.execute(
-			"INSERT INTO budget_entries (type, amount, reason, status, created_at) VALUES (?, ?, ?, ?, ?) RETURNING id",
-			(entry["type"], entry["amount"], entry["reason"], entry.get("status", "pending"), datetime.now(timezone.utc).isoformat()),
+			"INSERT INTO budget_entries (type, amount, reason, status, wallet_id, course, contributor_id, attachment_name, attachment_path, attachment_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+			(entry["type"], entry["amount"], entry["reason"], entry.get("status", "pending"), entry.get("wallet_id"), entry.get("course"), entry.get("contributor_id"), entry.get("attachment_name"), entry.get("attachment_path"), entry.get("attachment_type"), datetime.now(timezone.utc).isoformat()),
 		)
-		row = connection.execute("SELECT * FROM budget_entries WHERE id = ?", (_inserted_id(cursor.fetchone()),)).fetchone()
+		entry_id = _inserted_id(cursor.fetchone())
+		cursor.close()
+		row = connection.execute("SELECT * FROM budget_entries WHERE id = ?", (entry_id,)).fetchone()
+		connection.execute("INSERT INTO budget_audit_events (entry_id, event_type, actor, payload, created_at) VALUES (?, ?, ?, ?, ?)", (entry_id, "created", entry.get("actor", "system"), json.dumps({"type": entry["type"], "amount": entry["amount"], "wallet_id": entry.get("wallet_id")}), datetime.now(timezone.utc).isoformat()))
 	return _row_to_dict(row)
 
 
 def update_budget_entry(database_path, entry_id, values):
-	allowed = {"type", "status"}
+	allowed = {"type", "status", "reason", "contributor_id", "wallet_id", "course"}
 	changes = {key: value for key, value in values.items() if key in allowed}
 	if not changes:
 		return get_budget_entry(database_path, entry_id)
 	set_clause = ", ".join(f"{key} = ?" for key in changes)
 	with get_connection(database_path) as connection:
 		connection.execute(f"UPDATE budget_entries SET {set_clause} WHERE id = ?", [*changes.values(), entry_id])
+		connection.execute("INSERT INTO budget_audit_events (entry_id, event_type, actor, payload, created_at) VALUES (?, ?, ?, ?, ?)", (entry_id, "updated", values.get("actor", "system"), json.dumps(changes), datetime.now(timezone.utc).isoformat()))
 	return get_budget_entry(database_path, entry_id)
+
+
+def list_budget_audit_events(database_path, entry_id=None):
+	with get_connection(database_path) as connection:
+		query = "SELECT * FROM budget_audit_events"
+		params = []
+		if entry_id:
+			query += " WHERE entry_id = ?"
+			params.append(entry_id)
+		query += " ORDER BY created_at DESC, id DESC"
+		return [_row_to_dict(row) for row in connection.execute(query, params).fetchall()]
 
 
 def get_budget_entry(database_path, entry_id):
@@ -501,3 +637,38 @@ def add_poll_vote(database_path, announcement_id, option_id, school_id):
 		)
 		row = connection.execute("SELECT * FROM announcements WHERE id = ?", (announcement_id,)).fetchone()
 		return _announcement_with_options(connection, row)
+
+
+def list_no_class_exceptions(database_path, target_date=None):
+	with get_connection(database_path) as connection:
+		if target_date:
+			rows = connection.execute("SELECT * FROM no_class_exceptions WHERE date = ? ORDER BY course", (target_date,)).fetchall()
+		else:
+			rows = connection.execute("SELECT * FROM no_class_exceptions ORDER BY date DESC, course").fetchall()
+		return [_row_to_dict(row) for row in rows]
+
+
+def add_no_class_exception(database_path, target_date, course):
+	now = datetime.now(timezone.utc).isoformat()
+	with get_connection(database_path) as connection:
+		existing = connection.execute(
+			"SELECT id FROM no_class_exceptions WHERE date = ? AND course = ?", (target_date, course)
+		).fetchone()
+		if existing:
+			return _row_to_dict(connection.execute("SELECT * FROM no_class_exceptions WHERE id = ?", (_inserted_id(existing),)).fetchone())
+		cursor = connection.execute(
+			"INSERT INTO no_class_exceptions (date, course, created_at) VALUES (?, ?, ?) RETURNING id",
+			(target_date, course, now),
+		)
+		exception_id = _inserted_id(cursor.fetchone())
+		cursor.close()
+		return _row_to_dict(connection.execute("SELECT * FROM no_class_exceptions WHERE id = ?", (exception_id,)).fetchone())
+
+
+def delete_no_class_exception(database_path, exception_id):
+	with get_connection(database_path) as connection:
+		row = connection.execute("SELECT * FROM no_class_exceptions WHERE id = ?", (exception_id,)).fetchone()
+		if not row:
+			return None
+		connection.execute("DELETE FROM no_class_exceptions WHERE id = ?", (exception_id,))
+		return _row_to_dict(row)

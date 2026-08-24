@@ -15,12 +15,17 @@ ALLOWED_TAGS = {
 	"a",
 	"span",
 	"font",
+	"h1",
+	"h2",
+	"h3",
 }
-ALLOWED_ATTRIBUTES = {"a": ["href", "target", "rel"], "span": ["class", "style"], "font": ["color"]}
+ALLOWED_ATTRIBUTES = {"a": ["href", "target", "rel"], "span": ["class", "style"], "font": ["color", "face", "size"]}
 ALLOWED_PROTOCOLS = {"http", "https"}
 ALLOWED_CLASSES = {"text-color-red", "text-color-blue", "text-color-green", "highlight-yellow", "highlight-blue", "highlight-green"}
-ALLOWED_COLORS = {"#b42318", "#176b87", "#2f7d32", "rgb(180, 35, 24)", "rgb(23, 107, 135)", "rgb(47, 125, 50)"}
-ALLOWED_HIGHLIGHTS = {"background-color: rgb(255, 240, 168)", "background-color: rgb(207, 235, 255)", "background-color: rgb(211, 241, 214)"}
+ALLOWED_COLORS = {"#b42318", "#176b87", "#2f7d32", "#d65a68", "rgb(180, 35, 24)", "rgb(23, 107, 135)", "rgb(47, 125, 50)", "rgb(214, 90, 104)"}
+ALLOWED_HIGHLIGHTS = {"background-color: rgb(255, 240, 168)", "background-color: rgb(207, 235, 255)", "background-color: rgb(211, 241, 214)", "background-color: rgb(84, 38, 44)"}
+ALLOWED_FONT_FAMILIES = {"serif", "sans-serif", "monospace", "Georgia", "Verdana", "Courier New"}
+ALLOWED_FONT_SIZES = {"1", "2", "3", "4", "5", "6", "7"}
 
 
 def _link_is_safe(value):
@@ -39,6 +44,10 @@ def _filter_attributes(tag, name, value):
 		return value.strip().lower().rstrip(";") in {item.lower() for item in ALLOWED_HIGHLIGHTS}
 	if tag == "font" and name == "color":
 		return value.strip().lower() in {item.lower() for item in ALLOWED_COLORS}
+	if tag == "font" and name == "face":
+		return value.strip() in ALLOWED_FONT_FAMILIES
+	if tag == "font" and name == "size":
+		return value.strip() in ALLOWED_FONT_SIZES
 	return False
 
 

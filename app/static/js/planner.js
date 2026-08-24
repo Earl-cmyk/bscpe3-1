@@ -4,29 +4,12 @@ const plannerRichText = (value) => { const node = document.createElement('div');
 const plannerQuery = document.querySelector('#queryForm');
 const plannerHistory = document.querySelector('#chatHistory');
 const plannerMessages = document.querySelector('#chatMessages');
-const plannerAddMessage = (role, content) => { plannerMessages.insertAdjacentHTML('beforeend', `<div class="chat-message ${role}"><span>${role === 'user' ? 'You' : 'Planner'}</span><p>${content}</p></div>`); plannerHistory.hidden = false; plannerHistory.scrollTop = plannerHistory.scrollHeight; };
+let reinMastercontrol = false;
+const plannerAddMessage = (role, content) => { plannerMessages.insertAdjacentHTML('beforeend', `<div class="chat-message ${role}"><span>${role === 'user' ? 'You' : 'R3-1N'}</span><p>${content}</p></div>`); plannerHistory.hidden = false; plannerHistory.scrollTop = plannerHistory.scrollHeight; };
+const plannerIsMutation = (value) => /^(set deadline|no classes|deposit|withdraw)\b/i.test(value);
+function plannerPin() { return new Promise((resolve) => { const id = 'reinPinModal'; document.querySelector(`#${id}`)?.remove(); document.body.insertAdjacentHTML('beforeend', `<div id="${id}" class="modal-backdrop"><form class="modal small-modal"><button type="button" class="close" aria-label="Close">&times;</button><p class="eyebrow">R3-1N MASTERCONTROL</p><h2>Enter your PIN</h2><input class="pin-input" type="password" inputmode="numeric" maxlength="6" autocomplete="current-password" required /><p class="form-error" hidden></p><button class="button button-primary full-button" type="submit">Authorize</button></form></div>`); const modal = document.querySelector(`#${id}`); const form = modal.querySelector('form'); const close = () => { modal.remove(); resolve(null); }; modal.querySelector('.close').onclick = close; form.onsubmit = (event) => { event.preventDefault(); const pin = form.querySelector('input').value; if (pin) { modal.remove(); resolve(pin); } }; form.querySelector('input').focus(); }); }
+async function plannerFetch(url, options) { const response = await fetch(url, options); const data = await response.json(); if (!response.ok) throw Object.assign(new Error(data.error || 'Request failed'), { requiresPin: data.requires_pin }); return data; }
+function plannerScheduleAnswer(data) { return data.classes?.length ? data.classes.map((entry) => `<strong>${plannerEscape(entry.start)}–${plannerEscape(entry.end)}</strong> ${plannerEscape(entry.course)}`).join('<br>') : 'No classes scheduled.'; }
+function plannerAnswer(data) { if (data.classes) return `<strong>${plannerEscape(data.label || 'Schedule')}</strong><br>${plannerScheduleAnswer(data)}`; if (data.entries) return data.entries.length ? data.entries.map((entry) => `${plannerEscape(entry.reason)} - ${plannerMoney(entry.amount)} spent`).join('<br>') : `No spending found. Total: ${plannerMoney(data.total)}`; if (data.notes) return data.notes.length ? data.notes.map((note) => `<strong>${plannerEscape(note.title)}</strong> (${plannerEscape(note.course)})<br><small>${plannerRichText(note.caption)}</small>`).join('<br><br>') : 'No notes found.'; if (data.tasks) return data.tasks.length ? data.tasks.map((task) => `${plannerEscape(task.title)} - ${plannerEscape(task.course)} - ${new Intl.DateTimeFormat(undefined, { timeZone: 'Asia/Manila', dateStyle: 'medium', timeStyle: 'short' }).format(new Date(task.deadline))}`).join('<br>') : 'No matching tasks.'; return plannerEscape(data.message || 'Command completed.'); }
 document.querySelector('#closeChat').onclick = () => { plannerHistory.hidden = true; };
-plannerQuery.onsubmit = async (event) => {
-  event.preventDefault();
-  const query = document.querySelector('#queryInput').value.trim();
-  if (!query) return;
-  plannerAddMessage('user', plannerEscape(query));
-  document.querySelector('#queryInput').value = '';
-  const response = await fetch(`/api/query?q=${encodeURIComponent(query)}`);
-  const data = await response.json();
-  let answer;
-  if (!response.ok) {
-    answer = plannerEscape(data.error);
-  } else if (data.entries) {
-    answer = data.entries.length ? data.entries.map((entry) => `${plannerEscape(entry.reason)} - ${plannerMoney(entry.amount)} spent`).join('<br>') : `No spending found. Total: ${plannerMoney(data.total)}`;
-  } else if (data.notes) {
-    answer = data.notes.length ? data.notes.map((note) => `<strong>${plannerEscape(note.title)}</strong> (${plannerEscape(note.course)})<br><small>${plannerRichText(note.caption)}</small>`).join('<br><br>') : 'No notes found.';
-  } else if (data.tasks && data.notes) {
-    const tasks = data.tasks.length ? data.tasks.map((task) => `${plannerEscape(task.title)} - ${new Date(task.deadline).toLocaleString()}`).join('<br>') : 'No pending deadlines.';
-    const notes = data.notes.length ? data.notes.map((note) => `<strong>${plannerEscape(note.title)}</strong><br><small>${plannerRichText(note.caption)}</small>`).join('<br><br>') : 'No notes.';
-    answer = `<strong>Deadlines:</strong><br>${tasks}<br><br><strong>Notes:</strong><br>${notes}`;
-  } else {
-    answer = data.tasks?.length ? data.tasks.map((task) => `${plannerEscape(task.title)} - ${plannerEscape(task.course)} - ${new Date(task.deadline).toLocaleString()}`).join('<br>') : 'No matching tasks.';
-  }
-  plannerAddMessage('assistant', answer);
-};
+plannerQuery.onsubmit = async (event) => { event.preventDefault(); const query = document.querySelector('#queryInput').value.trim(); if (!query) return; plannerAddMessage('user', plannerEscape(query)); document.querySelector('#queryInput').value = ''; if (/^rein mastercontrol please[.!]?$/i.test(query)) { reinMastercontrol = true; plannerAddMessage('assistant', 'Mastercontrol ready. Send one command and I will request your PIN.'); return; } try { let data; if (plannerIsMutation(query)) { if (!reinMastercontrol) { plannerAddMessage('assistant', 'Say “Rein Mastercontrol please” first.'); return; } const pin = await plannerPin(); if (!pin) return; data = await plannerFetch('/api/assistant', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command: query, pin }) }); plannerAddMessage('assistant', plannerAnswer(data)); return; } data = await plannerFetch(`/api/query?q=${encodeURIComponent(query)}`); plannerAddMessage('assistant', plannerAnswer(data)); } catch (error) { plannerAddMessage('assistant', plannerEscape(error.message)); } };
