@@ -1,4 +1,3 @@
-return `<article id="note-${note.id}" class="history-item" data-note-id="${note.id}">`
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 
 function noteMarkup(note) {
@@ -16,7 +15,7 @@ function noteMarkup(note) {
 			<small>${escapeHtml(note.course)}</small>
 		</div>
 		<h2>${escapeHtml(note.title)}</h2>
-		<p>${escapeHtml(note.caption)}</p>
+		<div class="rich-content">${note.caption || ''}</div>
 		${attachmentDisplay}
 		<div class="note-actions">
 			<button class="button button-quiet edit-note" data-note-id="${note.id}">Edit</button>
@@ -136,7 +135,7 @@ async function editNoteWithPin(pin) {
 	
 	document.querySelector('#noteForm input[name="title"]').value = note.title;
 	document.querySelector('#noteForm select[name="course"]').value = note.course;
-	document.querySelector('#noteForm textarea[name="caption"]').value = note.caption;
+	window.richTextEditors.noteEditor.setValue(note.caption);
 	document.querySelector('#noteForm input[name="pin"]').value = pin;
 	
 	const response = await fetch(`/api/notes/${editingNoteId}`, {

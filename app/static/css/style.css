@@ -3,6 +3,80 @@
   box-sizing: border-box;
 }
 
+.rich-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 6px;
+  border: 1px solid var(--line, #d8d8d2);
+  border-bottom: 0;
+  background: var(--surface-muted, #f4f4ef);
+}
+
+.rich-toolbar button {
+  min-width: 30px;
+  min-height: 30px;
+  padding: 3px 7px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rich-toolbar button:hover,
+.rich-toolbar button:focus-visible {
+  border-color: currentColor;
+  background: var(--surface, #fff);
+}
+
+.emoji-tools {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.rich-editor {
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid var(--line, #d8d8d2);
+  background: var(--surface, #fff);
+  line-height: 1.55;
+  outline: none;
+}
+
+.rich-editor:focus {
+  border-color: var(--accent, #176b87);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent, #176b87) 18%, transparent);
+}
+
+.rich-editor p,
+.rich-content p {
+  margin: 0 0 0.65em;
+}
+
+.rich-editor p:last-child,
+.rich-content p:last-child {
+  margin-bottom: 0;
+}
+
+.rich-editor ul,
+.rich-editor ol,
+.rich-content ul,
+.rich-content ol {
+  margin: 0.4em 0 0.75em 1.4em;
+  padding-left: 1em;
+}
+
+.rich-content a {
+  color: var(--accent, #176b87);
+  text-decoration: underline;
+}
+
+.rich-content {
+  overflow-wrap: anywhere;
+}
+
 /* Final dark task-planner palette. Keep this after legacy calendar overrides. */
 :root {
   --ink: #f5f2f0;
@@ -342,6 +416,8 @@ body {
   padding: 24px;
   border-radius: 8px;
   scroll-margin-top: 92px;
+  padding-left: 12;
+  padding-right: 12;
 }
 
 @media (max-width: 640px) {
@@ -559,6 +635,8 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
   margin-top: 16px;
+  margin-left: 12px;
+  margin-right: 12px;
 }
 
 .note-media,
@@ -576,6 +654,8 @@ body {
   max-height: 280px;
   object-fit: contain;
   background: #000;
+  margin-left: 12px;
+  margin-right: 12px;
 }
 
 .media-trigger,
@@ -646,6 +726,8 @@ body {
   padding-top: 8px;
   color: var(--muted);
   font-size: 11px;
+  margin-left: 12px;
+  margin-right: 12px;
 }
 
 .note-media figcaption span,
@@ -653,6 +735,8 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-left: 12px;
+  margin-right: 12px;
 }
 
 .muted {

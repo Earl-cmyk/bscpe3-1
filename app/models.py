@@ -264,6 +264,7 @@ def _note_with_attachments(connection, note):
 	result = _row_to_dict(note)
 	if not result:
 		return None
+	result["caption"] = sanitize_rich_text(result.get("caption"))
 	result["attachments"] = [
 		_row_to_dict(attachment)
 		for attachment in connection.execute(
@@ -372,6 +373,7 @@ def _announcement_with_options(connection, announcement):
 	result = _row_to_dict(announcement)
 	if not result:
 		return None
+	result["body"] = sanitize_rich_text(result.get("body"))
 	result["options"] = [
 		_row_to_dict(row)
 		for row in connection.execute(
@@ -447,10 +449,11 @@ def search_content(database_path, term, limit=12, course="", kind=""):
 	if kind in ("", "Note"):
 		results.extend({**_row_to_dict(row), "kind": "Note", "url": f"/notes#note-{row['id']}"} for row in notes)
 	for result in results:
-		text = f"{result['title']} {result.get('detail') or ''} {result.get('meta') or ''}".lower()
+		plain_detail = rich_text_plain(result.get("detail") or "")
+		text = f"{result['title']} {plain_detail} {result.get('meta') or ''}".lower()
 		term_lower = term.lower()
 		result["score"] = (text.count(term_lower) * 3) + (result["title"].lower().count(term_lower) * 5)
-		result["snippet"] = (result.get("detail") or "")[:180]
+		result["snippet"] = plain_detail[:180]
 	return sorted(results, key=lambda item: (item["score"], item["created_at"], item["id"]), reverse=True)[:limit]
 
 

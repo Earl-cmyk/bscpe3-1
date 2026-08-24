@@ -3,4 +3,4 @@
 {% block content %}
 <main class="workspace-page"><div class="page-heading"><div><p class="eyebrow">HISTORY</p><h1>Past announcements</h1></div><a href="{{ url_for('main.index') }}" class="button button-primary icon-action" aria-label="Home" title="Home">&#8962;</a></div><section id="announcementHistory" class="announcement-history"><p class="muted">Loading history...</p></section></main>
 {% endblock %}
-{% block scripts %}<script src="{{ url_for('static', filename='js/announcements.js') }}"></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/rich-text.js') }}"></script><script src="{{ url_for('static', filename='js/announcements.js') }}"></script>{% endblock %}

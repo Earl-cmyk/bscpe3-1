@@ -30,6 +30,7 @@ from .models import (
 	update_task,
 )
 from .utils.query_parser import parse_query
+from .utils.rich_text import rich_text_plain, sanitize_rich_text
 from config import ALLOWED_COURSES, ALLOWED_DIFFICULTIES
 
 
@@ -74,9 +75,12 @@ def verify_pin():
 
 
 def _note_values(data):
-	values = {key: str(data.get(key, "")).strip() for key in ("title", "course", "caption")}
-	if not all(values.values()):
+	values = {key: str(data.get(key, "")).strip() for key in ("title", "course")}
+	values["caption"] = sanitize_rich_text(data.get("caption", ""))
+	if not all(values.values()) or not rich_text_plain(values["caption"]):
 		return None, "Title, course, and caption are required"
+	if len(rich_text_plain(values["caption"])) > 2000:
+		return None, "Caption must be 2000 characters or fewer"
 	if values["course"] not in ALLOWED_COURSES:
 		return None, "Invalid course"
 	return values, None
@@ -249,9 +253,11 @@ def create_announcement():
 	if data.get("pin") != current_app.config["TASK_PIN"]:
 		return jsonify(error="Invalid PIN"), 403
 	title = data.get("title", "").strip()
-	body = data.get("body", "").strip()
-	if not title or not body:
+	body = sanitize_rich_text(data.get("body", ""))
+	if not title or not rich_text_plain(body):
 		return jsonify(error="Title and message are required"), 400
+	if len(rich_text_plain(body)) > 2000:
+		return jsonify(error="Message must be 2000 characters or fewer"), 400
 	link_url = data.get("link_url", "").strip() or None
 	if link_url:
 		parts = urlsplit(link_url)
