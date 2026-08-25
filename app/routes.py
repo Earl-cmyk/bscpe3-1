@@ -1,4 +1,5 @@
 import re
+import json
 import sqlite3
 from decimal import Decimal, InvalidOperation
 from datetime import date, datetime, time, timedelta, timezone
@@ -552,6 +553,17 @@ def create_budget_entry():
 		return jsonify(error="Amount must be greater than zero"), 400
 	if not rich_text_plain(reason):
 		return jsonify(error="Reason is required"), 400
+	payer_names = data.get("payer_names", [])
+	if isinstance(payer_names, str):
+		try:
+			payer_names = json.loads(payer_names)
+		except (TypeError, ValueError):
+			payer_names = re.split(r"[\n,]", payer_names)
+	if not isinstance(payer_names, list):
+		return jsonify(error="Payer list must be an array"), 400
+	payer_names = list(dict.fromkeys(str(name).strip() for name in payer_names if str(name).strip()))
+	if len(payer_names) > 100 or any(len(name) > 120 for name in payer_names):
+		return jsonify(error="Payer list is too large"), 400
 	try:
 		wallet_id = int(data.get("wallet_id")) if data.get("wallet_id") else None
 	except (TypeError, ValueError):
@@ -574,7 +586,7 @@ def create_budget_entry():
 	if error:
 		return jsonify(error=error), 400
 	attachment = attachments[0] if attachments else {}
-	entry = add_budget_entry(current_app.config["DATABASE_PATH"], {"type": entry_type, "amount": float(amount.quantize(Decimal("0.01"))), "reason": reason, "wallet_id": wallet_id, "course": wallet["course"], "contributor_id": contributor_id, **{f"attachment_{key}": attachment.get(key) for key in ("name", "path", "type")}})
+	entry = add_budget_entry(current_app.config["DATABASE_PATH"], {"type": entry_type, "amount": float(amount.quantize(Decimal("0.01"))), "reason": reason, "wallet_id": wallet_id, "course": wallet["course"], "contributor_id": contributor_id, "payer_names": payer_names, **{f"attachment_{key}": attachment.get(key) for key in ("name", "path", "type")}})
 	return jsonify(entry=entry), 201
 
 
@@ -586,13 +598,26 @@ def update_budget(entry_id):
 	entry = get_budget_entry(current_app.config["DATABASE_PATH"], entry_id)
 	if not entry:
 		return jsonify(error="Budget entry not found"), 404
+	action = str(data.get("action", "")).strip().lower()
+	values = {}
+	if "payer_names" in data:
+		payer_names = data.get("payer_names")
+		if isinstance(payer_names, str):
+			try:
+				payer_names = json.loads(payer_names)
+			except (TypeError, ValueError):
+				payer_names = re.split(r"[\n,]", payer_names)
+		if not isinstance(payer_names, list):
+			return jsonify(error="Payer list must be an array"), 400
+		values["payer_names"] = list(dict.fromkeys(str(name).strip() for name in payer_names if str(name).strip()))
+	if not action and values:
+		return jsonify(entry=update_budget_entry(current_app.config["DATABASE_PATH"], entry_id, values))
 	if entry["type"] != "withdraw" or entry["status"] != "pending":
 		return jsonify(error="Only pending withdrawals can be resolved"), 400
-	action = str(data.get("action", "")).strip().lower()
 	if action == "cancel":
-		values = {"type": "deposit", "status": "cancelled"}
+		values.update({"status": "cancelled"})
 	elif action == "spent":
-		values = {"status": "spent"}
+		values["status"] = "spent"
 	else:
 		return jsonify(error="Choose cancel or spent"), 400
 	return jsonify(entry=update_budget_entry(current_app.config["DATABASE_PATH"], entry_id, values))

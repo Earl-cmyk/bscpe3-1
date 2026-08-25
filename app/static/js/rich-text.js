@@ -13,7 +13,8 @@ function createRichTextEditor(editor) {
 	});
 	toolbar.querySelectorAll('[data-format-block]').forEach((button) => button.onclick = () => { focusEditor(); document.execCommand('formatBlock', false, button.dataset.formatBlock); sync(); });
 	toolbar.querySelectorAll('[data-font-name], [data-font-size]').forEach((button) => button.onclick = () => { focusEditor(); document.execCommand(button.dataset.fontName ? 'fontName' : 'fontSize', false, button.dataset.fontName || button.dataset.fontSize); sync(); });
-	toolbar.querySelector('[data-link]').onclick = () => {
+	const linkButton = toolbar.querySelector('[data-link]');
+	if (linkButton) linkButton.onclick = () => {
 		focusEditor();
 		const url = window.prompt('Enter an HTTPS or HTTP link');
 		if (url && /^https?:\/\/[^\s]+$/i.test(url)) document.execCommand('createLink', false, url);

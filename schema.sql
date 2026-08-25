@@ -22,6 +22,7 @@ create table if not exists budget_entries (
     wallet_id bigint,
     course text,
     contributor_id bigint,
+    payer_names text not null default '[]',
     attachment_name text,
     attachment_path text,
     attachment_type text,
@@ -57,6 +58,7 @@ create table if not exists budget_audit_events (
 alter table budget_entries add column if not exists wallet_id bigint references wallets(id) on delete set null;
 alter table budget_entries add column if not exists course text;
 alter table budget_entries add column if not exists contributor_id bigint references contributors(id) on delete set null;
+alter table budget_entries add column if not exists payer_names text not null default '[]';
 alter table budget_entries add column if not exists attachment_name text;
 alter table budget_entries add column if not exists attachment_path text;
 alter table budget_entries add column if not exists attachment_type text;

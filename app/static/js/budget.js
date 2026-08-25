@@ -2,6 +2,15 @@ const $ = (selector) => document.querySelector(selector);
 const money = (value) => `PHP ${Number(value || 0).toFixed(2)}`;
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 let budgetData = { wallets: [], contributors: [] };
+const payerInput = document.createElement('textarea');
+payerInput.name = 'payer_names';
+payerInput.rows = 3;
+payerInput.placeholder = 'One payer per line';
+payerInput.setAttribute('aria-label', 'Payer names');
+const payerLabel = document.createElement('label');
+payerLabel.textContent = 'Payers';
+payerLabel.appendChild(payerInput);
+document.querySelector('#auditForm .form-grid').appendChild(payerLabel);
 async function loadBudget() { 
 	const walletId = $('#walletSelect').value; 
 	const response = await fetch(`/api/budget${walletId ? `?wallet_id=${walletId}` : ''}`); 
@@ -20,7 +29,7 @@ async function loadBudget() {
 	$('#pieDeposit').style.strokeDasharray = `${depositPercent} ${100 - depositPercent}`; 
 	$('#pieWithdraw').style.strokeDasharray = `${100 - depositPercent} ${depositPercent}`; 
 	$('#pieWithdraw').style.strokeDashoffset = `${-depositPercent}`; 
-	$('#budgetEntries').innerHTML = data.entries.map((entry) => `<div class="budget-entry"><span class="entry-icon ${entry.type}">${entry.type === 'deposit' ? '+' : '-'}</span><span><strong>${entry.reason || ''}</strong><small>${escapeHtml(entry.contributor_name || 'Unknown')} · ${entry.type} · ${entry.status}</small></span><b>${entry.type === 'deposit' ? '+' : '-'}${money(entry.amount)}</b>${entry.type === 'withdraw' && entry.status === 'pending' ? `<span class="entry-actions"><button class="button button-quiet" data-action="cancel" data-id="${entry.id}" aria-label="Cancel withdrawal">&times;</button><button class="button button-primary" data-action="spent" data-id="${entry.id}" aria-label="Mark spent">&check;</button></span>` : ''}</div>`).join('') || '<p class="muted">No entries yet.</p>'; 
+	$('#budgetEntries').innerHTML = data.entries.map((entry) => `<div class="budget-entry"><span class="entry-icon ${entry.type}">${entry.type === 'deposit' ? '+' : '-'}</span><span><strong>${entry.reason || ''}</strong><small>${escapeHtml((entry.payer_names || []).join(', ') || entry.contributor_name || 'No payer listed')} · ${entry.type} · ${entry.status}</small></span><b>${entry.type === 'deposit' ? '+' : '-'}${money(entry.amount)}</b><button class="button button-quiet" data-action="edit-payers" data-id="${entry.id}" aria-label="Edit payer list">Edit payers</button>${entry.type === 'withdraw' && entry.status === 'pending' ? `<span class="entry-actions"><button class="button button-quiet" data-action="cancel" data-id="${entry.id}" aria-label="Cancel withdrawal">&times;</button><button class="button button-primary" data-action="spent" data-id="${entry.id}" aria-label="Mark spent">&check;</button></span>` : ''}</div>`).join('') || '<p class="muted">No entries yet.</p>'; 
 	$('#auditHistory').innerHTML = data.audit.map((event) => `<div class="audit-event"><strong>${escapeHtml(event.event_type)}</strong><small>${escapeHtml(event.actor)} · ${escapeHtml(event.created_at)}</small></div>`).join('') || '<p class="muted">No audit events yet.</p>'; 
 }
 function fillSelects() { 
@@ -37,7 +46,7 @@ async function loadReferenceData() {
 }
 $('#walletSelect').onchange = () => loadBudget().catch((error) => { $('#budgetEntries').innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; });
 $('#addWallet').onclick = async () => { const name = window.prompt('Wallet name'); if (!name?.trim()) return; const course = window.prompt('Course code (optional)'); const pin = window.prompt('Enter your PIN'); if (!pin) return; const response = await fetch('/api/wallets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim(), course: course?.trim() || '', pin }) }); const data = await response.json(); if (!response.ok) window.alert(data.error); else { await loadReferenceData(); $('#walletSelect').value = data.wallet.id; await loadBudget(); } };
-$('#addContributor').onclick = async () => { const name = window.prompt('Payer name'); if (!name?.trim()) return; const pin = window.prompt('Enter your PIN'); if (!pin) return; const response = await fetch('/api/contributors', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim(), pin }) }); const data = await response.json(); if (!response.ok) window.alert(data.error); else { await loadReferenceData(); $('#auditContributor').value = data.contributor.id; } };
+$('#addContributor')?.remove();
 $('#openAudit').onclick = async () => { $('#pinInput').value = ''; $('#pinError').hidden = true; $('#pinModal').hidden = false; };
 $('#pinForm').onsubmit = async (event) => { 
 	event.preventDefault(); 
@@ -51,6 +60,7 @@ $('#pinForm').onsubmit = async (event) => {
 	$('#pinModal').hidden = true; 
 	$('#auditModal').hidden = false; 
 	$('#auditWallet').value = $('#walletSelect').value; 
+	payerInput.value = '';
 };
 document.querySelectorAll('[data-close]').forEach((button) => { 
 	button.onclick = () => { document.querySelector(`#${button.dataset.close}`).hidden = true; }; 
@@ -76,6 +86,7 @@ $('#auditForm').onsubmit = async (event) => {
 $('#budgetEntries').onclick = async (event) => { 
 	const button = event.target.closest('[data-action]'); 
 	if (!button) return; 
+	if (button.dataset.action === 'edit-payers') { const entry = budgetData.entries.find((item) => String(item.id) === button.dataset.id); if (!entry) return; const names = window.prompt('Edit payer names, one per line', (entry.payer_names || []).join('\n')); if (names === null) return; const pin = window.prompt('Enter your PIN'); if (!pin) return; const payerNames = [...new Set(names.split(/[\n,]/).map((name) => name.trim()).filter(Boolean))]; const response = await fetch(`/api/budget/${entry.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payer_names: payerNames, pin }) }); const data = await response.json(); if (!response.ok) window.alert(data.error); else await loadBudget(); return; }
 	const pin = window.prompt('Enter your PIN'); 
 	if (pin === null) return; 
 	const response = await fetch(`/api/budget/${button.dataset.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: button.dataset.action, pin }) }); 

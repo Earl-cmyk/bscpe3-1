@@ -2,7 +2,7 @@ import json
 import sqlite3
 from datetime import datetime, timezone
 from contextlib import contextmanager
-
+from .utils.rich_text import rich_text_plain, sanitize_rich_text
 
 class _PostgresConnection:
 	def __init__(self, connection):
@@ -222,6 +222,7 @@ def init_db(database_path):
 			"wallet_id": "INTEGER",
 			"course": "TEXT",
 			"contributor_id": "INTEGER",
+			"payer_names": "TEXT NOT NULL DEFAULT '[]'",
 			"attachment_name": "TEXT",
 			"attachment_path": "TEXT",
 			"attachment_type": "TEXT",
@@ -415,7 +416,7 @@ def list_wallets(database_path, active_only=False):
 	with get_connection(database_path) as connection:
 		query = "SELECT * FROM wallets"
 		if active_only:
-			query += " WHERE active = 1"
+			query += " WHERE active = TRUE"
 		query += " ORDER BY CASE WHEN course IS NULL THEN 1 ELSE 0 END, name"
 		return [_row_to_dict(row) for row in connection.execute(query).fetchall()]
 
@@ -428,7 +429,17 @@ def get_wallet(database_path, wallet_id):
 def add_wallet(database_path, wallet):
 	now = datetime.now(timezone.utc).isoformat()
 	with get_connection(database_path) as connection:
-		cursor = connection.execute("INSERT INTO wallets (name, course, active, created_at, updated_at) VALUES (?, ?, ?, ?, ?) RETURNING id", (wallet["name"], wallet.get("course"), wallet.get("active", 1), now, now))
+		cursor = connection.execute(
+			"INSERT INTO wallets (name, course, active, created_at, updated_at) "
+			"VALUES (?, ?, ?, ?, ?) RETURNING id",
+			(
+				wallet["name"],
+				wallet.get("course"),
+				bool(wallet.get("active", True)),
+				now,
+				now,
+			),
+		)
 		wallet_id = _inserted_id(cursor.fetchone())
 		cursor.close()
 	return get_wallet(database_path, wallet_id)
@@ -438,7 +449,7 @@ def list_contributors(database_path, active_only=False):
 	with get_connection(database_path) as connection:
 		query = "SELECT * FROM contributors"
 		if active_only:
-			query += " WHERE active = 1"
+			query += " WHERE active = TRUE"
 		query += " ORDER BY name"
 		return [_row_to_dict(row) for row in connection.execute(query).fetchall()]
 
@@ -461,24 +472,38 @@ def list_budget_entries(database_path, wallet_id=None):
 			params.append(wallet_id)
 		query += " ORDER BY budget_entries.created_at DESC, budget_entries.id DESC"
 		rows = connection.execute(query, params).fetchall()
-		return [_row_to_dict(row) for row in rows]
+		return [_budget_entry_dict(row) for row in rows]
+
+
+def _budget_entry_dict(row):
+	result = _row_to_dict(row)
+	if not result:
+		return None
+	try:
+		payer_names = json.loads(result.get("payer_names") or "[]")
+	except (TypeError, ValueError):
+		payer_names = []
+	result["payer_names"] = [str(name).strip() for name in payer_names if str(name).strip()] if isinstance(payer_names, list) else []
+	return result
 
 
 def add_budget_entry(database_path, entry):
 	with get_connection(database_path) as connection:
 		cursor = connection.execute(
-			"INSERT INTO budget_entries (type, amount, reason, status, wallet_id, course, contributor_id, attachment_name, attachment_path, attachment_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
-			(entry["type"], entry["amount"], entry["reason"], entry.get("status", "pending"), entry.get("wallet_id"), entry.get("course"), entry.get("contributor_id"), entry.get("attachment_name"), entry.get("attachment_path"), entry.get("attachment_type"), datetime.now(timezone.utc).isoformat()),
+			"INSERT INTO budget_entries (type, amount, reason, status, wallet_id, course, contributor_id, payer_names, attachment_name, attachment_path, attachment_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+			(entry["type"], entry["amount"], entry["reason"], entry.get("status", "pending"), entry.get("wallet_id"), entry.get("course"), entry.get("contributor_id"), json.dumps(entry.get("payer_names", [])), entry.get("attachment_name"), entry.get("attachment_path"), entry.get("attachment_type"), datetime.now(timezone.utc).isoformat()),
 		)
 		entry_id = _inserted_id(cursor.fetchone())
 		cursor.close()
 		row = connection.execute("SELECT * FROM budget_entries WHERE id = ?", (entry_id,)).fetchone()
 		connection.execute("INSERT INTO budget_audit_events (entry_id, event_type, actor, payload, created_at) VALUES (?, ?, ?, ?, ?)", (entry_id, "created", entry.get("actor", "system"), json.dumps({"type": entry["type"], "amount": entry["amount"], "wallet_id": entry.get("wallet_id")}), datetime.now(timezone.utc).isoformat()))
-	return _row_to_dict(row)
+	return _budget_entry_dict(row)
 
 
 def update_budget_entry(database_path, entry_id, values):
-	allowed = {"type", "status", "reason", "contributor_id", "wallet_id", "course"}
+	allowed = {"type", "status", "reason", "contributor_id", "wallet_id", "course", "payer_names"}
+	if "payer_names" in values:
+		values = {**values, "payer_names": json.dumps(values["payer_names"])}
 	changes = {key: value for key, value in values.items() if key in allowed}
 	if not changes:
 		return get_budget_entry(database_path, entry_id)
@@ -502,7 +527,7 @@ def list_budget_audit_events(database_path, entry_id=None):
 
 def get_budget_entry(database_path, entry_id):
 	with get_connection(database_path) as connection:
-		return _row_to_dict(connection.execute("SELECT * FROM budget_entries WHERE id = ?", (entry_id,)).fetchone())
+		return _budget_entry_dict(connection.execute("SELECT * FROM budget_entries WHERE id = ?", (entry_id,)).fetchone())
 
 
 def _announcement_with_options(connection, announcement):
