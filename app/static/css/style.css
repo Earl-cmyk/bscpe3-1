@@ -119,6 +119,31 @@
   color: #ff9aa4 !important;
 }
 
+.rich-content.is-collapsible {
+  max-height: 220px;
+  overflow: hidden;
+}
+
+.rich-content.is-collapsible.is-expanded {
+  max-height: none;
+}
+
+.rich-content-toggle {
+  border: 0;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--coral);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.rich-content-toggle:hover,
+.rich-content-toggle:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
 .day-number-large,
 .day-number {
   color: var(--coral) !important;

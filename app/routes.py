@@ -143,8 +143,6 @@ def _note_values(data):
 	values["caption"] = sanitize_rich_text(data.get("caption", ""))
 	if not all(values.values()) or not rich_text_plain(values["caption"]):
 		return None, "Title, course, and caption are required"
-	if len(rich_text_plain(values["caption"])) > 2000:
-		return None, "Caption must be 2000 characters or fewer"
 	if values["course"] not in ALLOWED_COURSES:
 		return None, "Invalid course"
 	return values, None
@@ -260,8 +258,6 @@ def _validate(data):
 		return "Invalid course"
 	if data.get("difficulty", "Medium") not in ALLOWED_DIFFICULTIES:
 		return "Invalid difficulty"
-	if len(rich_text_plain(data["description"])) > 2000:
-		return "Description must be 2000 characters or fewer"
 	try:
 		parse_manila_datetime(data["deadline"])
 	except ValueError:
@@ -372,8 +368,6 @@ def create_announcement():
 	body = sanitize_rich_text(data.get("body", ""))
 	if not title or not rich_text_plain(body):
 		return jsonify(error="Title and message are required"), 400
-	if len(rich_text_plain(body)) > 2000:
-		return jsonify(error="Message must be 2000 characters or fewer"), 400
 	link_url = data.get("link_url", "").strip() or None
 	if link_url:
 		parts = urlsplit(link_url)

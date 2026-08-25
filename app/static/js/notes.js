@@ -30,6 +30,7 @@ async function loadNotes(course = '') {
 	const data = await response.json();
 	if (!response.ok) throw new Error(data.error || 'Unable to load notes');
 	document.querySelector('#notesFeed').innerHTML = data.notes.map(noteMarkup).join('') || '<p class="muted">No notes yet.</p>';
+	setupCollapsibleRichContent(document.querySelector('#notesFeed'));
 }
 
 const courseFilter = document.querySelector('#courseFilter');
