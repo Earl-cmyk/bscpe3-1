@@ -18,6 +18,14 @@ ALLOWED_TAGS = {
 	"h1",
 	"h2",
 	"h3",
+	"table",
+	"caption",
+	"thead",
+	"tbody",
+	"tfoot",
+	"tr",
+	"th",
+	"td",
 }
 ALLOWED_ATTRIBUTES = {"a": ["href", "target", "rel"], "span": ["class", "style"], "font": ["color", "face", "size"]}
 ALLOWED_PROTOCOLS = {"http", "https"}
@@ -34,6 +42,13 @@ def _link_is_safe(value):
 
 
 def _filter_attributes(tag, name, value):
+	if tag in {"td", "th"} and name in {"rowspan", "colspan"}:
+		try:
+			return 1 <= int(value) <= 20
+		except (TypeError, ValueError):
+			return False
+	if tag == "th" and name == "scope":
+		return value in {"row", "col"}
 	if tag == "a" and name == "href":
 		return _link_is_safe(value)
 	if tag == "a" and name in {"target", "rel"}:
