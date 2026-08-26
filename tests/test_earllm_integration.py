@@ -72,10 +72,11 @@ class EarllmIntegrationTests(unittest.TestCase):
 				self.calls = 0
 
 			def execute(self, query, params=()):
-				self.query = query
-				self.calls += 1
-				if self.calls == 1:
-					return FakeResult([])
+				if query.startswith("SELECT"):
+					self.query = query
+					self.calls += 1
+					if self.calls == 1:
+						return FakeResult([])
 				return FakeResult([{"note_id": 4, "title": "Binary arithmetic", "course": "HDL", "content": "Learn complements."}])
 
 		fake_connection = FakeConnection()
@@ -85,6 +86,55 @@ class EarllmIntegrationTests(unittest.TestCase):
 		self.assertEqual(result[0]["title"], "Binary arithmetic")
 		self.assertIn("ILIKE", fake_connection.query)
 		self.assertNotIn("MATCH", fake_connection.query)
+
+	def test_missing_postgres_note_chunks_error_is_rolled_back_before_fallback(self):
+		class MissingRelationError(Exception):
+			sqlstate = "42P01"
+
+		class FakeResult:
+			def fetchall(self):
+				return [{"note_id": 4, "title": "Number systems", "course": "HDL", "content": "Binary and decimal systems."}]
+
+		class FakeConnection:
+			def __init__(self):
+				self.queries = []
+
+			def execute(self, query, params=()):
+				self.queries.append(query)
+				if "FROM note_chunks" in query:
+					raise MissingRelationError('relation "note_chunks" does not exist')
+				return FakeResult()
+
+			def rollback(self):
+				self.queries.append("CONNECTION ROLLBACK")
+
+		fake_connection = FakeConnection()
+		with patch("app.models.get_connection") as get_connection_mock:
+			get_connection_mock.return_value.__enter__.return_value = fake_connection
+			result = search_note_context("postgresql://database", "number systems", course="HDL")
+		self.assertEqual(result[0]["title"], "Number systems")
+		self.assertTrue(any("ROLLBACK TO SAVEPOINT" in query for query in fake_connection.queries))
+		self.assertTrue(any("RELEASE SAVEPOINT" in query for query in fake_connection.queries))
+
+	def test_unexpected_postgres_note_chunks_error_is_not_swallowed(self):
+		class FakeConnection:
+			def __init__(self):
+				self.queries = []
+
+			def execute(self, query, params=()):
+				self.queries.append(query)
+				if "FROM note_chunks" in query:
+					raise RuntimeError("permission denied for relation note_chunks")
+				return type("Result", (), {"fetchall": lambda self: []})()
+
+			def rollback(self):
+				self.queries.append("CONNECTION ROLLBACK")
+
+		fake_connection = FakeConnection()
+		with patch("app.models.get_connection") as get_connection_mock:
+			get_connection_mock.return_value.__enter__.return_value = fake_connection
+			with self.assertRaisesRegex(RuntimeError, "permission denied"):
+				search_note_context("postgresql://database", "number systems")
 
 	def test_chat_creates_only_a_mastercontrol_proposal(self):
 		prediction = {"intent": "CREATE_DEADLINE", "confidence": 0.99, "confidence_band": "high", "entities": {"course": "HDL", "date": "tomorrow", "time": "18:00", "title": "lab report"}}

@@ -1,5 +1,6 @@
 import json
 import hashlib
+import logging
 import re
 import secrets
 import sqlite3
@@ -7,6 +8,8 @@ from datetime import datetime, timedelta, timezone
 from contextlib import contextmanager
 from .utils.rich_text import rich_text_plain, sanitize_rich_text
 from .utils.rag import note_chunks, query_terms, rank_chunks
+
+logger = logging.getLogger(__name__)
 
 class _PostgresConnection:
 	def __init__(self, connection):
@@ -511,23 +514,49 @@ def search_note_context(database_path, query, course="", limit=5):
 	if not terms:
 		return []
 	with get_connection(database_path) as connection:
-		try:
-			params = []
-			course_sql = ""
-			if course:
-				course_sql = " AND course = ?"
-				params.append(course)
-			params.append(limit * 4)
-			chunk_rows = connection.execute(
-				f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index LIMIT ?",
-				params,
-			).fetchall()
-			chunks = rank_chunks([dict(row) for row in chunk_rows], query, limit)
-			if chunks:
-				return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in chunks]
-		except (sqlite3.OperationalError, Exception) as error:
-			if not isinstance(error, sqlite3.OperationalError) and "does not exist" not in str(error).lower():
-				raise
+		if str(database_path).startswith(("postgres://", "postgresql://")):
+			try:
+				connection.execute("SAVEPOINT rein_note_chunks_probe")
+				params = []
+				course_sql = ""
+				if course:
+					course_sql = " AND course = ?"
+					params.append(course)
+				params.append(limit * 4)
+				chunk_rows = connection.execute(
+					f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index LIMIT ?",
+					params,
+				).fetchall()
+				chunks = rank_chunks([dict(row) for row in chunk_rows], query, limit)
+				connection.execute("RELEASE SAVEPOINT rein_note_chunks_probe")
+				if chunks:
+					return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in chunks]
+			except Exception as error:
+				try:
+					connection.execute("ROLLBACK TO SAVEPOINT rein_note_chunks_probe")
+					connection.execute("RELEASE SAVEPOINT rein_note_chunks_probe")
+				except Exception:
+					connection.rollback()
+				if not _is_missing_relation_error(error):
+					raise
+				logger.warning("Optional note_chunks search unavailable; using notes fallback. Original database error: %s", error, exc_info=True)
+		else:
+			try:
+				params = []
+				course_sql = ""
+				if course:
+					course_sql = " AND course = ?"
+					params.append(course)
+				params.append(limit * 4)
+				chunk_rows = connection.execute(
+					f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index LIMIT ?",
+					params,
+				).fetchall()
+				chunks = rank_chunks([dict(row) for row in chunk_rows], query, limit)
+				if chunks:
+					return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in chunks]
+			except sqlite3.OperationalError:
+				pass
 		if str(database_path).startswith(("postgres://", "postgresql://")):
 			patterns = [f"%{term}%" for term in query_terms(query)]
 			term_sql = " OR ".join("title ILIKE %s OR course ILIKE %s OR caption ILIKE %s" for _ in patterns)
@@ -558,6 +587,10 @@ def search_note_context(database_path, query, course="", limit=5):
 				params = [pattern, pattern, pattern, limit]
 				rows = connection.execute("SELECT id AS note_id, title, course, caption AS content, 0 AS rank FROM notes WHERE title LIKE ? OR course LIKE ? OR caption LIKE ? ORDER BY updated_at DESC LIMIT ?", params).fetchall()
 	return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in rows]
+
+
+def _is_missing_relation_error(error):
+	return getattr(error, "sqlstate", None) == "42P01" or error.__class__.__name__ == "UndefinedTable"
 
 
 def create_assistant_action(database_path, tool_name, arguments, ttl_seconds=120):

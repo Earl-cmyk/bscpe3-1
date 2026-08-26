@@ -138,13 +138,17 @@ To cancel a class for one course on one date, use `No classes`. The exception ca
 
 ## Deployment
 
-`run:app` is the configured Vercel entry point. A deployment also needs a persistent PostgreSQL `DATABASE_URL`, the private `TASK_PIN`, and Supabase Storage settings if attachments should persist outside the app filesystem. Configure these values in the hosting provider's environment settings, then deploy the project using that provider's normal workflow.
+The Render deployment uses [Dockerfile](Dockerfile) and starts both Flask and the Rust earLLM process in one service. This keeps Rein available when `bscpe3-1.onrender.com` wakes up; it no longer depends on a separately waking `earllm.onrender.com` service.
 
-The assistant uses the persistent Rust earLLM service described in [docs/earllm_integration.md](docs/earllm_integration.md). For local development, start it before Flask:
+In Render, set the service runtime to Docker and use the repository root as the Docker build context. The container starts earLLM on `127.0.0.1:8787`, waits for its health endpoint, and then runs Gunicorn on Render's `$PORT`. Do not override `EARLLM_URL` unless using a separately hosted service.
+
+The service needs a persistent PostgreSQL `DATABASE_URL`, the private `TASK_PIN`, and Supabase Storage settings if attachments should persist outside the app filesystem. Apply [supabase_migration.sql](supabase_migration.sql) in Supabase before deployment for full chunk-based note search. If `note_chunks` is unavailable, Rein falls back to searching `notes`; the original PostgreSQL error is logged after a savepoint rollback.
+
+For local development, start earLLM before Flask:
 
 ```powershell
 cd earLLM/rust
 cargo run --release -- serve --bind 127.0.0.1:8787
 ```
 
-Set `EARLLM_URL` and `EARLLM_TIMEOUT` in the Flask environment. `127.0.0.1` is local-only. Vercel cannot host the long-running Rust listener as a sidecar, so production requires a separately hosted earLLM service reachable through a private or authenticated HTTPS URL. Do not deploy with the local default URL.
+Then run Flask with `EARLLM_URL=http://127.0.0.1:8787`. The Docker startup script performs the equivalent readiness check automatically.
