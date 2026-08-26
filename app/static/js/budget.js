@@ -2,15 +2,22 @@ const $ = (selector) => document.querySelector(selector);
 const money = (value) => `PHP ${Number(value || 0).toFixed(2)}`;
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 let budgetData = { wallets: [], contributors: [] };
-const payerInput = document.createElement('textarea');
-payerInput.name = 'payer_names';
-payerInput.rows = 3;
-payerInput.placeholder = 'One payer per line';
-payerInput.setAttribute('aria-label', 'Payer names');
-const payerLabel = document.createElement('label');
-payerLabel.textContent = 'Payers';
-payerLabel.appendChild(payerInput);
-document.querySelector('#auditForm .form-grid').appendChild(payerLabel);
+const auditLists = { payees: [], purchased_items: [] };
+function renderAuditList(name) {
+	const target = name === 'payees' ? '#payeesList' : '#purchasedItemsList';
+	$(target).innerHTML = auditLists[name].map((item, index) => `<span class="audit-list-item">${escapeHtml(item)}<button type="button" class="list-remove" data-list="${name}" data-index="${index}" aria-label="Remove ${escapeHtml(item)}">&times;</button></span>`).join('');
+}
+function addAuditListItem(name) {
+	const input = $(`[data-list-input="${name}"]`);
+	const value = input.value.trim();
+	if (!value || auditLists[name].includes(value)) return;
+	auditLists[name].push(value);
+	input.value = '';
+	renderAuditList(name);
+}
+document.querySelectorAll('.add-list-item').forEach((button) => { button.onclick = () => addAuditListItem(button.dataset.list); });
+document.querySelectorAll('.list-item-input').forEach((input) => { input.onkeydown = (event) => { if (event.key === 'Enter') { event.preventDefault(); addAuditListItem(input.dataset.list); } }; });
+document.querySelector('#auditModal').onclick = (event) => { const button = event.target.closest('.list-remove'); if (!button) return; auditLists[button.dataset.list].splice(Number(button.dataset.index), 1); renderAuditList(button.dataset.list); };
 async function loadBudget() { 
 	const walletId = $('#walletSelect').value; 
 	const response = await fetch(`/api/budget${walletId ? `?wallet_id=${walletId}` : ''}`); 
@@ -29,13 +36,12 @@ async function loadBudget() {
 	$('#pieDeposit').style.strokeDasharray = `${depositPercent} ${100 - depositPercent}`; 
 	$('#pieWithdraw').style.strokeDasharray = `${100 - depositPercent} ${depositPercent}`; 
 	$('#pieWithdraw').style.strokeDashoffset = `${-depositPercent}`; 
-	$('#budgetEntries').innerHTML = data.entries.map((entry) => `<div class="budget-entry"><span class="entry-icon ${entry.type}">${entry.type === 'deposit' ? '+' : '-'}</span><span><strong>${entry.reason || ''}</strong><small>${escapeHtml((entry.payer_names || []).join(', ') || entry.contributor_name || 'No payer listed')} · ${entry.type} · ${entry.status}</small></span><b>${entry.type === 'deposit' ? '+' : '-'}${money(entry.amount)}</b><button class="button button-quiet" data-action="edit-payers" data-id="${entry.id}" aria-label="Edit payer list">Edit payers</button>${entry.type === 'withdraw' && entry.status === 'pending' ? `<span class="entry-actions"><button class="button button-quiet" data-action="cancel" data-id="${entry.id}" aria-label="Cancel withdrawal">&times;</button><button class="button button-primary" data-action="spent" data-id="${entry.id}" aria-label="Mark spent">&check;</button></span>` : ''}</div>`).join('') || '<p class="muted">No entries yet.</p>'; 
+	$('#budgetEntries').innerHTML = data.entries.map((entry) => `<div class="budget-entry"><span class="entry-icon ${entry.type}">${entry.type === 'deposit' ? '+' : '-'}</span><span><strong>${escapeHtml(entry.title || entry.reason || '')}</strong><small>${escapeHtml(entry.reason || '')} · ${entry.type} · ${entry.status}</small>${entry.payees?.length ? `<small>Payees: ${escapeHtml(entry.payees.join(', '))}</small>` : ''}${entry.purchased_items?.length ? `<small>Items: ${escapeHtml(entry.purchased_items.join(', '))}</small>` : ''}</span><b>${entry.type === 'deposit' ? '+' : '-'}${money(entry.amount)}</b>${entry.type === 'withdraw' && entry.status === 'pending' ? `<span class="entry-actions"><button class="button button-quiet" data-action="cancel" data-id="${entry.id}" aria-label="Cancel withdrawal">&times;</button><button class="button button-primary" data-action="spent" data-id="${entry.id}" aria-label="Mark spent">&check;</button></span>` : ''}</div>`).join('') || '<p class="muted">No entries yet.</p>'; 
 	$('#auditHistory').innerHTML = data.audit.map((event) => `<div class="audit-event"><strong>${escapeHtml(event.event_type)}</strong><small>${escapeHtml(event.actor)} · ${escapeHtml(event.created_at)}</small></div>`).join('') || '<p class="muted">No audit events yet.</p>'; 
 }
 function fillSelects() { 
 	$('#walletSelect').innerHTML = budgetData.wallets.map((wallet) => `<option value="${wallet.id}">${escapeHtml(wallet.name)}${wallet.course ? ` · ${escapeHtml(wallet.course)}` : ''}</option>`).join(''); 
 	$('#auditWallet').innerHTML = $('#walletSelect').innerHTML; 
-	$('#auditContributor').innerHTML = '<option value="">Select contributor</option>' + budgetData.contributors.map((person) => `<option value="${person.id}">${escapeHtml(person.name)}</option>`).join(''); 
 }
 async function loadReferenceData() { 
 	const response = await fetch('/api/budget'); 
@@ -46,7 +52,6 @@ async function loadReferenceData() {
 }
 $('#walletSelect').onchange = () => loadBudget().catch((error) => { $('#budgetEntries').innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; });
 $('#addWallet').onclick = async () => { const name = window.prompt('Wallet name'); if (!name?.trim()) return; const course = window.prompt('Course code (optional)'); const pin = window.prompt('Enter your PIN'); if (!pin) return; const response = await fetch('/api/wallets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim(), course: course?.trim() || '', pin }) }); const data = await response.json(); if (!response.ok) window.alert(data.error); else { await loadReferenceData(); $('#walletSelect').value = data.wallet.id; await loadBudget(); } };
-$('#addContributor')?.remove();
 $('#openAudit').onclick = async () => { $('#pinInput').value = ''; $('#pinError').hidden = true; $('#pinModal').hidden = false; };
 $('#pinForm').onsubmit = async (event) => { 
 	event.preventDefault(); 
@@ -60,7 +65,7 @@ $('#pinForm').onsubmit = async (event) => {
 	$('#pinModal').hidden = true; 
 	$('#auditModal').hidden = false; 
 	$('#auditWallet').value = $('#walletSelect').value; 
-	payerInput.value = '';
+	auditLists.payees.length = 0; auditLists.purchased_items.length = 0; renderAuditList('payees'); renderAuditList('purchased_items');
 };
 document.querySelectorAll('[data-close]').forEach((button) => { 
 	button.onclick = () => { document.querySelector(`#${button.dataset.close}`).hidden = true; }; 
@@ -70,6 +75,8 @@ $('#auditForm').onsubmit = async (event) => {
 	const formData = new FormData(event.currentTarget);
 	const payload = Object.fromEntries(formData); 
 	payload.pin = event.currentTarget.dataset.pin || ''; 
+	formData.set('payees', JSON.stringify(auditLists.payees));
+	formData.set('purchased_items', JSON.stringify(auditLists.purchased_items));
 	formData.set('pin', payload.pin);
 	const response = await fetch('/api/budget', { method: 'POST', body: formData }); 
 	const data = await response.json(); 

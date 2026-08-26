@@ -1,6 +1,9 @@
 import json
+import hashlib
+import re
+import secrets
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from contextlib import contextmanager
 from .utils.rich_text import rich_text_plain, sanitize_rich_text
 
@@ -46,6 +49,10 @@ def get_connection(database_path):
 
 def init_db(database_path):
 	if str(database_path).startswith(("postgres://", "postgresql://")):
+		with get_connection(database_path) as connection:
+			missing = [name for name in ("budget_entries", "budget_audit_events", "no_class_exceptions") if connection.execute("SELECT to_regclass(?) AS relation", (name,)).fetchone()["relation"] is None]
+		if missing:
+			raise RuntimeError("Supabase schema is incomplete. Run supabase_migration.sql in the Supabase SQL Editor; missing: " + ", ".join(missing))
 		return
 	with get_connection(database_path) as connection:
 		connection.execute("PRAGMA foreign_keys = ON")
@@ -189,6 +196,42 @@ def init_db(database_path):
 			)
 			"""
 		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS assistant_actions (
+				token_hash TEXT PRIMARY KEY,
+				tool_name TEXT NOT NULL,
+				arguments TEXT NOT NULL,
+				expires_at TEXT NOT NULL,
+				used INTEGER NOT NULL DEFAULT 0,
+				created_at TEXT NOT NULL
+			)
+			"""
+		)
+		connection.execute(
+			"""
+			CREATE TABLE IF NOT EXISTS assistant_audit_events (
+				id INTEGER PRIMARY KEY AUTOINCREMENT,
+				tool_name TEXT NOT NULL,
+				arguments TEXT NOT NULL,
+				status TEXT NOT NULL,
+				created_at TEXT NOT NULL
+			)
+			"""
+		)
+		connection.execute(
+			"""
+			CREATE VIRTUAL TABLE IF NOT EXISTS note_search USING fts5(
+				note_id UNINDEXED, title, course, content
+			)
+			"""
+		)
+		connection.execute("DELETE FROM note_search")
+		for note in connection.execute("SELECT id, title, course, caption FROM notes").fetchall():
+			connection.execute(
+				"INSERT INTO note_search (note_id, title, course, content) VALUES (?, ?, ?, ?)",
+				(note["id"], note["title"], note["course"], rich_text_plain(note["caption"])),
+			)
 		legacy_notes = connection.execute(
 			"SELECT id, attachment_name, attachment_path, attachment_type, created_at FROM notes WHERE attachment_path IS NOT NULL"
 		).fetchall()
@@ -219,10 +262,13 @@ def init_db(database_path):
 		if "status" not in budget_columns:
 			connection.execute("ALTER TABLE budget_entries ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'")
 		for column, definition in {
+			"title": "TEXT NOT NULL DEFAULT ''",
 			"wallet_id": "INTEGER",
 			"course": "TEXT",
 			"contributor_id": "INTEGER",
 			"payer_names": "TEXT NOT NULL DEFAULT '[]'",
+			"payees": "TEXT NOT NULL DEFAULT '[]'",
+			"purchased_items": "TEXT NOT NULL DEFAULT '[]'",
 			"attachment_name": "TEXT",
 			"attachment_path": "TEXT",
 			"attachment_type": "TEXT",
@@ -379,6 +425,13 @@ def add_note(database_path, note):
 				"INSERT INTO note_attachments (note_id, name, path, type, created_at) VALUES (?, ?, ?, ?, ?)",
 				(note_id, attachment["name"], attachment["path"], attachment["type"], now),
 			)
+		try:
+			connection.execute(
+				"INSERT INTO note_search (note_id, title, course, content) VALUES (?, ?, ?, ?)",
+				(note_id, note["title"], note["course"], rich_text_plain(note["caption"])),
+			)
+		except sqlite3.OperationalError:
+			pass
 	return get_note(database_path, note_id)
 
 
@@ -391,6 +444,16 @@ def update_note(database_path, note_id, values):
 	set_clause = ", ".join(f"{key} = ?" for key in changes)
 	with get_connection(database_path) as connection:
 		connection.execute(f"UPDATE notes SET {set_clause} WHERE id = ?", [*changes.values(), note_id])
+		try:
+			connection.execute("DELETE FROM note_search WHERE note_id = ?", (note_id,))
+			updated = connection.execute("SELECT id, title, course, caption FROM notes WHERE id = ?", (note_id,)).fetchone()
+			if updated:
+				connection.execute(
+					"INSERT INTO note_search (note_id, title, course, content) VALUES (?, ?, ?, ?)",
+					(updated["id"], updated["title"], updated["course"], rich_text_plain(updated["caption"])),
+				)
+		except sqlite3.OperationalError:
+			pass
 	return get_note(database_path, note_id)
 
 
@@ -410,6 +473,68 @@ def add_note_attachments(database_path, note_id, attachments):
 def delete_note(database_path, note_id):
 	with get_connection(database_path) as connection:
 		connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
+		try:
+			connection.execute("DELETE FROM note_search WHERE note_id = ?", (note_id,))
+		except sqlite3.OperationalError:
+			pass
+
+
+def search_note_context(database_path, query, course="", limit=5):
+	terms = " OR ".join(re.findall(r"[\w]+", str(query or "")))
+	if not terms:
+		return []
+	with get_connection(database_path) as connection:
+		try:
+			params = [terms]
+			filter_sql = ""
+			if course:
+				filter_sql = " AND course = ?"
+				params.append(course)
+			params.append(limit)
+			rows = connection.execute(
+				f"SELECT note_id, title, course, content, bm25(note_search) AS rank FROM note_search WHERE note_search MATCH ?{filter_sql} ORDER BY rank LIMIT ?",
+				params,
+			).fetchall()
+		except sqlite3.OperationalError:
+			pattern = f"%{query}%"
+			params = [pattern, pattern, pattern, limit]
+			rows = connection.execute("SELECT id AS note_id, title, course, caption AS content, 0 AS rank FROM notes WHERE title LIKE ? OR course LIKE ? OR caption LIKE ? ORDER BY updated_at DESC LIMIT ?", params).fetchall()
+	return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in rows]
+
+
+def create_assistant_action(database_path, tool_name, arguments, ttl_seconds=120):
+	now = datetime.now(timezone.utc)
+	token = secrets.token_urlsafe(32)
+	token_hash = hashlib.sha256(token.encode()).hexdigest()
+	expires_at = (now + timedelta(seconds=ttl_seconds)).isoformat()
+	with get_connection(database_path) as connection:
+		connection.execute(
+			"INSERT INTO assistant_actions (token_hash, tool_name, arguments, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
+			(token_hash, tool_name, json.dumps(arguments, sort_keys=True), expires_at, now.isoformat()),
+		)
+	return token
+
+
+def consume_assistant_action(database_path, token):
+	token_hash = hashlib.sha256(str(token or "").encode()).hexdigest()
+	now = datetime.now(timezone.utc).isoformat()
+	with get_connection(database_path) as connection:
+		row = connection.execute(
+			"SELECT * FROM assistant_actions WHERE token_hash = ? AND used = 0 AND expires_at > ?",
+			(token_hash, now),
+		).fetchone()
+		if not row:
+			return None
+		connection.execute("UPDATE assistant_actions SET used = 1 WHERE token_hash = ?", (token_hash,))
+		return {"tool_name": row["tool_name"], "arguments": json.loads(row["arguments"])}
+
+
+def add_assistant_audit_event(database_path, tool_name, arguments, status):
+	with get_connection(database_path) as connection:
+		connection.execute(
+			"INSERT INTO assistant_audit_events (tool_name, arguments, status, created_at) VALUES (?, ?, ?, ?)",
+			(tool_name, json.dumps(arguments, sort_keys=True), status, datetime.now(timezone.utc).isoformat()),
+		)
 
 
 def list_wallets(database_path, active_only=False):
@@ -484,14 +609,20 @@ def _budget_entry_dict(row):
 	except (TypeError, ValueError):
 		payer_names = []
 	result["payer_names"] = [str(name).strip() for name in payer_names if str(name).strip()] if isinstance(payer_names, list) else []
+	for field in ("payees", "purchased_items"):
+		try:
+			items = json.loads(result.get(field) or "[]")
+		except (TypeError, ValueError):
+			items = []
+		result[field] = [str(item).strip() for item in items if str(item).strip()] if isinstance(items, list) else []
 	return result
 
 
 def add_budget_entry(database_path, entry):
 	with get_connection(database_path) as connection:
 		cursor = connection.execute(
-			"INSERT INTO budget_entries (type, amount, reason, status, wallet_id, course, contributor_id, payer_names, attachment_name, attachment_path, attachment_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
-			(entry["type"], entry["amount"], entry["reason"], entry.get("status", "pending"), entry.get("wallet_id"), entry.get("course"), entry.get("contributor_id"), json.dumps(entry.get("payer_names", [])), entry.get("attachment_name"), entry.get("attachment_path"), entry.get("attachment_type"), datetime.now(timezone.utc).isoformat()),
+			"INSERT INTO budget_entries (title, type, amount, reason, status, wallet_id, course, contributor_id, payer_names, payees, purchased_items, attachment_name, attachment_path, attachment_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+			(entry.get("title", ""), entry["type"], entry["amount"], entry["reason"], entry.get("status", "pending"), entry.get("wallet_id"), entry.get("course"), entry.get("contributor_id"), json.dumps(entry.get("payer_names", [])), json.dumps(entry.get("payees", [])), json.dumps(entry.get("purchased_items", [])), entry.get("attachment_name"), entry.get("attachment_path"), entry.get("attachment_type"), datetime.now(timezone.utc).isoformat()),
 		)
 		entry_id = _inserted_id(cursor.fetchone())
 		cursor.close()
@@ -501,9 +632,10 @@ def add_budget_entry(database_path, entry):
 
 
 def update_budget_entry(database_path, entry_id, values):
-	allowed = {"type", "status", "reason", "contributor_id", "wallet_id", "course", "payer_names"}
-	if "payer_names" in values:
-		values = {**values, "payer_names": json.dumps(values["payer_names"])}
+	allowed = {"title", "type", "status", "reason", "contributor_id", "wallet_id", "course", "payer_names", "payees", "purchased_items"}
+	for field in ("payer_names", "payees", "purchased_items"):
+		if field in values:
+			values = {**values, field: json.dumps(values[field])}
 	changes = {key: value for key, value in values.items() if key in allowed}
 	if not changes:
 		return get_budget_entry(database_path, entry_id)

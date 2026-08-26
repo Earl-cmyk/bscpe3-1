@@ -1,3 +1,6 @@
+## Supabase schema setup
+
+Before deploying with `DATABASE_URL`, run `supabase_migration.sql` in the Supabase SQL Editor. It creates the class schedule exception table and adds the optional audit fields used by the budget page. The application now reports the missing relations clearly at startup instead of failing when a no-class exception is submitted.
 # R3-1NFORCE 
 
 R3-1NFORCE is a Flask web app for tracking deadlines, class schedules, notes, announcements, and a shared class fund.

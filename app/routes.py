@@ -19,11 +19,14 @@ from .models import (
 	add_note,
 	add_note_attachments,
 	add_poll_vote,
+	add_assistant_audit_event,
 	add_task,
 	add_wallet,
 	delete_no_class_exception,
 	delete_note,
 	delete_task,
+	consume_assistant_action,
+	create_assistant_action,
 	get_budget_entry,
 	get_note,
 	get_task,
@@ -43,6 +46,8 @@ from .models import (
 	update_task,
 )
 from .utils.query_parser import parse_query
+from .utils.assistant import answer_message
+from .utils.mastercontrol import dispatch_tool, validate_tool
 from .utils.rich_text import rich_text_plain, sanitize_rich_text
 from .utils.schedule import DAY_NAMES, COURSE_SHORT, get_schedule_for_date, parse_manila_date, parse_manila_datetime, serialize_entry, today_manila
 from config import ALLOWED_COURSES, ALLOWED_DIFFICULTIES
@@ -461,6 +466,46 @@ def query_tasks():
 	return jsonify(label=parsed["label"], tasks=tasks)
 
 
+@main.post("/api/assistant/chat")
+def assistant_chat():
+	data = _payload()
+	message = str(data.get("message", "")).strip()
+	if not message:
+		return jsonify(assistant="R3-1N", error="Enter a question or command"), 400
+	return jsonify(assistant="R3-1N", **answer_message(current_app.config["DATABASE_PATH"], message))
+
+
+@main.post("/api/assistant/action/prepare")
+def prepare_assistant_action():
+	data = _payload()
+	if not _pin_valid(data):
+		return jsonify(assistant="R3-1N", error="Invalid PIN", requires_pin=True), 403
+	try:
+		tool_name = str(data.get("tool", "")).strip()
+		arguments = validate_tool(tool_name, data.get("arguments", {}))
+		token = create_assistant_action(current_app.config["DATABASE_PATH"], tool_name, arguments)
+	except (TypeError, ValueError, OverflowError) as error:
+		return jsonify(assistant="R3-1N", error=str(error)), 400
+	return jsonify(assistant="R3-1N", tool=tool_name, arguments=arguments, confirmation_token=token, expires_in=120, message=f"Ready to {tool_name.replace('_', ' ')}. Confirm this action to continue."), 202
+
+
+@main.post("/api/assistant/action/execute")
+def execute_assistant_action():
+	data = _payload()
+	if data.get("confirm") not in (True, "true", "yes", "confirm"):
+		return jsonify(assistant="R3-1N", error="Explicit confirmation is required"), 400
+	action = consume_assistant_action(current_app.config["DATABASE_PATH"], data.get("confirmation_token"))
+	if not action:
+		return jsonify(assistant="R3-1N", error="Confirmation token is invalid or expired"), 403
+	try:
+		result = dispatch_tool(current_app.config["DATABASE_PATH"], action["tool_name"], action["arguments"])
+		add_assistant_audit_event(current_app.config["DATABASE_PATH"], action["tool_name"], action["arguments"], "success")
+	except (TypeError, ValueError, OverflowError, sqlite3.IntegrityError) as error:
+		add_assistant_audit_event(current_app.config["DATABASE_PATH"], action["tool_name"], action["arguments"], "failed")
+		return jsonify(assistant="R3-1N", error=str(error)), 400
+	return jsonify(assistant="R3-1N", tool=action["tool_name"], message="Action completed.", result=result)
+
+
 @main.post("/api/assistant")
 def assistant_command():
 	data = _payload()
@@ -558,6 +603,20 @@ def create_budget_entry():
 	payer_names = list(dict.fromkeys(str(name).strip() for name in payer_names if str(name).strip()))
 	if len(payer_names) > 100 or any(len(name) > 120 for name in payer_names):
 		return jsonify(error="Payer list is too large"), 400
+	optional_lists = {}
+	for field in ("payees", "purchased_items"):
+		items = data.get(field, [])
+		if isinstance(items, str):
+			try:
+				items = json.loads(items)
+			except (TypeError, ValueError):
+				items = re.split(r"[\n,]", items)
+		if not isinstance(items, list):
+			return jsonify(error=f"{field.replace('_', ' ').title()} must be an array"), 400
+		items = list(dict.fromkeys(str(item).strip() for item in items if str(item).strip()))
+		if len(items) > 100 or any(len(item) > 200 for item in items):
+			return jsonify(error=f"{field.replace('_', ' ').title()} list is too large"), 400
+		optional_lists[field] = items
 	try:
 		wallet_id = int(data.get("wallet_id")) if data.get("wallet_id") else None
 	except (TypeError, ValueError):
@@ -573,14 +632,11 @@ def create_budget_entry():
 		contributor_id = int(data.get("contributor_id")) if data.get("contributor_id") else None
 	except (TypeError, ValueError):
 		contributor_id = None
-	contributors = list_contributors(current_app.config["DATABASE_PATH"], True)
-	if not contributor_id or not any(item["id"] == contributor_id for item in contributors):
-		return jsonify(error="Choose a contributor"), 400
 	attachments, error = _save_attachments(request.files.getlist("attachments")) if request.files else ([], None)
 	if error:
 		return jsonify(error=error), 400
 	attachment = attachments[0] if attachments else {}
-	entry = add_budget_entry(current_app.config["DATABASE_PATH"], {"type": entry_type, "amount": float(amount.quantize(Decimal("0.01"))), "reason": reason, "wallet_id": wallet_id, "course": wallet["course"], "contributor_id": contributor_id, "payer_names": payer_names, **{f"attachment_{key}": attachment.get(key) for key in ("name", "path", "type")}})
+	entry = add_budget_entry(current_app.config["DATABASE_PATH"], {"title": str(data.get("title", "")).strip(), "type": entry_type, "amount": float(amount.quantize(Decimal("0.01"))), "reason": reason, "wallet_id": wallet_id, "course": wallet["course"], "contributor_id": contributor_id, "payer_names": payer_names, **optional_lists, **{f"attachment_{key}": attachment.get(key) for key in ("name", "path", "type")}})
 	return jsonify(entry=entry), 201
 
 
