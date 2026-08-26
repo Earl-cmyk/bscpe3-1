@@ -484,21 +484,34 @@ def search_note_context(database_path, query, course="", limit=5):
 	if not terms:
 		return []
 	with get_connection(database_path) as connection:
-		try:
-			params = [terms]
-			filter_sql = ""
+		if str(database_path).startswith(("postgres://", "postgresql://")):
+			pattern = f"%{query}%"
+			params = [pattern, pattern, pattern]
+			course_sql = ""
 			if course:
-				filter_sql = " AND course = ?"
+				course_sql = " AND course = %s"
 				params.append(course)
 			params.append(limit)
 			rows = connection.execute(
-				f"SELECT note_id, title, course, content, bm25(note_search) AS rank FROM note_search WHERE note_search MATCH ?{filter_sql} ORDER BY rank LIMIT ?",
+				f"SELECT id AS note_id, title, course, caption AS content, 0 AS rank FROM notes WHERE (title ILIKE %s OR course ILIKE %s OR caption ILIKE %s){course_sql} ORDER BY updated_at DESC LIMIT %s",
 				params,
 			).fetchall()
-		except sqlite3.OperationalError:
-			pattern = f"%{query}%"
-			params = [pattern, pattern, pattern, limit]
-			rows = connection.execute("SELECT id AS note_id, title, course, caption AS content, 0 AS rank FROM notes WHERE title LIKE ? OR course LIKE ? OR caption LIKE ? ORDER BY updated_at DESC LIMIT ?", params).fetchall()
+		else:
+			try:
+				params = [terms]
+				filter_sql = ""
+				if course:
+					filter_sql = " AND course = ?"
+					params.append(course)
+				params.append(limit)
+				rows = connection.execute(
+					f"SELECT note_id, title, course, content, bm25(note_search) AS rank FROM note_search WHERE note_search MATCH ?{filter_sql} ORDER BY rank LIMIT ?",
+					params,
+				).fetchall()
+			except sqlite3.OperationalError:
+				pattern = f"%{query}%"
+				params = [pattern, pattern, pattern, limit]
+				rows = connection.execute("SELECT id AS note_id, title, course, caption AS content, 0 AS rank FROM notes WHERE title LIKE ? OR course LIKE ? OR caption LIKE ? ORDER BY updated_at DESC LIMIT ?", params).fetchall()
 	return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in rows]
 
 

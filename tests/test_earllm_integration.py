@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from app import create_app
-from app.models import get_connection, init_db, list_tasks
+from app.models import get_connection, init_db, list_tasks, search_note_context
 from app.services.earllm_client import EarllmInvalidResponse, validate_prediction
 from app.utils.assistant import answer_message, classify_message
 
@@ -57,6 +57,27 @@ class EarllmIntegrationTests(unittest.TestCase):
 			result = answer_message(self.database_path, "How does nonexistent topic work?", "http://nlu", 1)
 		self.assertEqual(result["message"], "I couldn't find information about that in your Notes.")
 		self.assertEqual(result["sources"], [])
+
+	def test_note_context_uses_postgres_search_without_sqlite_fts(self):
+		class FakeResult:
+			def fetchall(self):
+				return [{"note_id": 4, "title": "Binary arithmetic", "course": "HDL", "content": "Learn complements."}]
+
+		class FakeConnection:
+			def __init__(self):
+				self.query = ""
+
+			def execute(self, query, params=()):
+				self.query = query
+				return FakeResult()
+
+		fake_connection = FakeConnection()
+		with patch("app.models.get_connection") as get_connection_mock:
+			get_connection_mock.return_value.__enter__.return_value = fake_connection
+			result = search_note_context("postgresql://database", "complements", course="HDL")
+		self.assertEqual(result[0]["title"], "Binary arithmetic")
+		self.assertIn("ILIKE", fake_connection.query)
+		self.assertNotIn("MATCH", fake_connection.query)
 
 	def test_chat_creates_only_a_mastercontrol_proposal(self):
 		prediction = {"intent": "CREATE_DEADLINE", "confidence": 0.99, "confidence_band": "high", "entities": {"course": "HDL", "date": "tomorrow", "time": "18:00", "title": "lab report"}}
