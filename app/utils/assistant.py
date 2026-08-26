@@ -4,31 +4,31 @@ from zoneinfo import ZoneInfo
 
 from .rich_text import rich_text_plain
 from .schedule import today_manila
+from ..services.earllm_client import EarllmError, EarllmInvalidResponse, EarllmUnavailable, predict
 
 NO_NOTE_CONTEXT = "I couldn't find information about that in your Notes."
 
 
-def classify_message(message):
+def classify_message(message, nlu_result=None, nlu_url=None, nlu_timeout=None):
 	text = " ".join(str(message or "").split())
-	lower = text.casefold()
 	if not text:
 		return {"intent": "clarification", "message": "Tell me what you need help with."}
-	action = parse_mastercontrol_command(text)
-	if action:
-		return action
-	if any(phrase in lower for phrase in ("my notes", "from my notes", "in my notes", "note about", "notes about")):
-		return {"intent": "note_query", "query": _note_query(text)}
-	if any(word in lower for word in ("schedule", "class", "classes")):
-		return {"intent": "schedule", "date": _relative_date(lower)}
-	if any(word in lower for word in ("deadline", "deadlines", "due", "to do", "todo")):
-		return {"intent": "deadlines", "start": _relative_date(lower), "course": _course_in(text)}
-	if any(word in lower for word in ("search", "find", "look up")):
-		return {"intent": "search", "query": re.sub(r"^(search|find|look up)\s*", "", text, flags=re.I).strip()}
-	return {"intent": "open_qa", "message": "I can answer questions about your schedule, deadlines, and Notes. For study questions, mention your Notes so I can ground the answer in them."}
+	if nlu_result is None:
+		if not nlu_url:
+			raise EarllmUnavailable("NLU service is not configured")
+		nlu_result = predict(text, nlu_url, nlu_timeout)
+	return _route_prediction(nlu_result, text)
 
 
-def answer_message(database_path, message):
-	route = classify_message(message)
+def answer_message(database_path, message, nlu_url=None, nlu_timeout=None):
+	try:
+		route = classify_message(message, nlu_url=nlu_url, nlu_timeout=nlu_timeout)
+	except EarllmUnavailable:
+		return {"intent": "unavailable", "message": "Rein's local language service is unavailable right now. Please try again later."}
+	except (EarllmInvalidResponse, EarllmError):
+		return {"intent": "clarification", "message": "I couldn't safely understand that request. Please rephrase it."}
+	if route.get("confidence_band") == "clarification_required" or route.get("confidence", 1) < 0.60:
+		return {**route, "intent": "clarification", "message": "I'm not quite sure what you want Rein to do. Could you rephrase that?"}
 	if route["intent"] == "mastercontrol_action":
 		return {**route, "message": "I parsed this as a Mastercontrol action. PIN authorization and confirmation are required before anything changes."}
 	if route["intent"] == "note_query":
@@ -61,6 +61,83 @@ def answer_message(database_path, message):
 		results = search_content(database_path, route["query"])
 		return {**route, "message": _search_message(results), "results": results}
 	return route
+
+
+def _route_prediction(prediction, text):
+	intent = prediction["intent"]
+	entities = prediction["entities"]
+	result = {"intent": intent, "confidence": prediction["confidence"], "confidence_band": prediction["confidence_band"], "entities": entities}
+	date_text = entities.get("date") or _relative_date(text.casefold()).isoformat()
+	course = _course_entity(entities.get("course"))
+	if intent == "CREATE_DEADLINE":
+		missing = _missing(entities, "course", "date", "time", "title")
+		if missing or not _valid_course(course):
+			return {**result, "intent": "clarification", "message": "Sure. What course, title, due date, and time should I use?"}
+		return {**result, "intent": "mastercontrol_action", "tool": "create_deadline", "arguments": _deadline_arguments(entities, course)}
+	if intent == "MARK_NO_CLASS":
+		if _missing(entities, "course", "date") or not _valid_course(course):
+			return {**result, "intent": "clarification", "message": "Which course and date should I mark as having no class?"}
+		return {**result, "intent": "mastercontrol_action", "tool": "add_no_class_exception", "arguments": {"course": course, "date": date_text}}
+	if intent == "DELETE_DEADLINE":
+		if _missing(entities, "deadline_id"):
+			return {**result, "intent": "clarification", "message": "Which deadline should I remove?"}
+		return {**result, "intent": "mastercontrol_action", "tool": "delete_deadline", "arguments": {"deadline_id": entities.get("deadline_id")}}
+	if intent in {"RECORD_DEPOSIT", "RECORD_EXPENSE"}:
+		course = course or _course_in(text)
+		if _missing(entities, "amount") or not _valid_course(course):
+			return {**result, "intent": "clarification", "message": "What amount and course wallet should I use, and what is it for?"}
+		return {**result, "intent": "mastercontrol_action", "tool": "record_transaction", "arguments": {"type": "deposit" if intent == "RECORD_DEPOSIT" else "withdraw", "amount": entities.get("amount"), "course": course, "reason": entities.get("description") or entities.get("topic") or _transaction_reason(text)}}
+	if intent in {"LEARN_TOPIC", "SEARCH_NOTES"}:
+		return {**result, "intent": "note_query", "query": entities.get("topic") or text, "course": course or ""}
+	if intent in {"GET_SCHEDULE", "GET_TODAY_SCHEDULE", "GET_TOMORROW_SCHEDULE"}:
+		target = "today" if intent == "GET_TODAY_SCHEDULE" else "tomorrow" if intent == "GET_TOMORROW_SCHEDULE" else date_text
+		return {**result, "intent": "schedule", "date": _resolve_date(target)}
+	if intent in {"GET_DEADLINES", "GET_COURSE_DEADLINES", "GET_WEEK_DEADLINES"}:
+		target = _resolve_date(date_text)
+		return {**result, "intent": "deadlines", "start": target, "course": course or ""}
+	if intent in {"GET_ANNOUNCEMENTS", "GET_POLLS", "GET_FUND_BALANCE", "GET_FUND_TRANSACTIONS", "EXPLAIN_TOPIC", "PRACTICE_TOPIC", "QUIZ_TOPIC", "CREATE_ANNOUNCEMENT", "CREATE_POLL", "UPDATE_DEADLINE", "DELETE_NOTE", "UPDATE_NOTE", "VOTE_POLL"}:
+		return {**result, "intent": "unsupported", "message": "Rein understands that request, but that function isn't available yet."}
+	return {**result, "intent": "clarification", "message": "I'm not quite sure what you want Rein to do. Could you rephrase that?"}
+
+
+def _deadline_arguments(entities, course):
+	date_text = entities.get("date")
+	time_text = entities.get("time")
+	when = " ".join(value for value in (date_text, time_text) if value)
+	return {"datetime": when, "course": course, "title": entities.get("title"), "description": entities.get("description") or entities.get("title"), "difficulty": "Medium"}
+
+
+def _course_entity(value):
+	if not value:
+		return ""
+	from ..utils.mastercontrol import _course
+
+	try:
+		return _course(value)
+	except ValueError:
+		return str(value).strip()
+
+def _valid_course(value):
+	from config import ALLOWED_COURSES
+
+	return value in ALLOWED_COURSES
+
+
+def _missing(entities, *names):
+	return any(entities.get(name) in (None, "", []) for name in names)
+
+
+def _transaction_reason(text):
+	match = re.search(r"\bfor\s+.+?\s+for\s+(.+)$", text, re.I)
+	return match.group(1).strip(" .?!") if match else text
+
+def _resolve_date(value):
+	from .schedule import parse_manila_date
+
+	try:
+		return parse_manila_date(value)
+	except ValueError:
+		return value
 
 
 def parse_mastercontrol_command(text):

@@ -1,0 +1,935 @@
+{"text": "any Networks assignments due", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Networks"}}
+{"text": "Can you mark CS101 as having no class Friday?", "intent": "MARK_NO_CLASS", "entities": {"course": "CS101", "date": "Friday"}}
+{"text": "What's my schedule?", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "mark HDL as cancelled Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "Friday"}}
+{"text": "do I need to go to class tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "add a Networks deadline due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "Networks", "date": "next Monday"}}
+{"text": "log a 400 peso deposit from merch sales", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "I need to add Lab Report to LCD.", "intent": "CREATE_DEADLINE", "entities": {"course": "LCD", "title": "Lab Report"}}
+{"text": "push the Networks deadline back a day", "intent": "UPDATE_DEADLINE", "entities": {"course": "Networks"}}
+{"text": "hey can you show me my schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "How do I use binary search trees?", "intent": "LEARN_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "can you reschedule deadline 12", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 12}}
+{"text": "what haven't I submitted yet", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "balance check please", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "any notes on joins in SQL I've saved", "intent": "SEARCH_NOTES", "entities": {"topic": "joins in SQL"}}
+{"text": "What's on my plate today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "put in an expense of 1200 for the venue deposit", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "let's practice binary trees together", "intent": "PRACTICE_TOPIC", "entities": {"topic": "binary trees"}}
+{"text": "Move the CS101 deadline to tomorrow", "intent": "UPDATE_DEADLINE", "entities": {"course": "CS101", "date": "tomorrow"}}
+{"text": "Explain how SQL joins works", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "SQL joins"}}
+{"text": "get rid of the HDL deadline entry", "intent": "DELETE_DEADLINE", "entities": {"course": "HDL"}}
+{"text": "create a note about tips from the review session", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "give me exercises on binary search trees", "intent": "PRACTICE_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "log the 200 peso deposit from t-shirt sales", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "show the announcement history", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "Record a deposit of 300 peso", "intent": "RECORD_DEPOSIT", "entities": {"amount": 300}}
+{"text": "edit the deadline for the group project", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "can you simplify karnaugh maps for me", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "Quiz me on hash tables", "intent": "QUIZ_TOPIC", "entities": {"topic": "hash tables"}}
+{"text": "new deadline: LCD project, due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "LCD", "title": "project", "date": "tomorrow"}}
+{"text": "Can you mark HDL as having no class Friday?", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "Friday"}}
+{"text": "show classes", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "today's classes pls", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "list everything that's due", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "class got cancelled for Networks today", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "anything I'm missing that's due", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "what am I supposed to turn in", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "what came through the account recently", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "what's on for today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "add a deposit of ₱2,000 to the fund", "intent": "RECORD_DEPOSIT", "entities": {"amount": 2000}}
+{"text": "we deposited 1500 today, please log it", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "add a HDL deadline due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "HDL", "date": "tomorrow"}}
+{"text": "do I have any classes tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "remove that Networks deadline", "intent": "DELETE_DEADLINE", "entities": {}}
+{"text": "announce the winner of the raffle", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "deadlines for the upcoming week please", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "check Networks for pending deadlines", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Networks"}}
+{"text": "move deadline 12 to Friday", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 12, "date": "Friday"}}
+{"text": "I want to learn binary search trees", "intent": "LEARN_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "set up a poll for choosing event sponsors", "intent": "CREATE_POLL", "entities": {}}
+{"text": "log a deposit of 300 peso", "intent": "RECORD_DEPOSIT", "entities": {"amount": 300}}
+{"text": "give me a plain-english explanation of dynamic programming", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "create a new deadline for LCD, due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "LCD", "date": "tomorrow"}}
+{"text": "give me the weekly deadline digest", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "update the time on the lab report deadline", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "show all pending deadlines", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "cancel deadline 7 please", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 7}}
+{"text": "get rid of the Networks deadline entry", "intent": "DELETE_DEADLINE", "entities": {"course": "Networks"}}
+{"text": "mark CS101 as cancelled today", "intent": "MARK_NO_CLASS", "entities": {"course": "CS101", "date": "today"}}
+{"text": "Give me practice problems on finite automata", "intent": "PRACTICE_TOPIC", "entities": {"topic": "finite automata"}}
+{"text": "remove the LCD deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "LCD"}}
+{"text": "add a note listing key formulas from class", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "I want to check my timetable", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "Show me today's classes", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "add an expense of 200 for decorations", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "Quiz me on karnaugh maps", "intent": "QUIZ_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "explain regular expressions in simple terms", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "regular expressions"}}
+{"text": "Give me practice problems on binary trees", "intent": "PRACTICE_TOPIC", "entities": {"topic": "binary trees"}}
+{"text": "add deadline", "intent": "CREATE_DEADLINE", "entities": {}}
+{"text": "jot a quick note about the exam coverage", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "give me a graded quiz about hash tables", "intent": "QUIZ_TOPIC", "entities": {"topic": "hash tables"}}
+{"text": "share an announcement about the workshop", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "how are we doing money-wise", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "gimme my schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "start a poll asking about dietary restrictions", "intent": "CREATE_POLL", "entities": {}}
+{"text": "record that we paid 300 for permits", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "create a note called project ideas", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "check my notes for TCP handshakes", "intent": "SEARCH_NOTES", "entities": {"topic": "TCP handshakes"}}
+{"text": "announce the new officer list", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "what am I supposed to vote on", "intent": "GET_POLLS", "entities": {}}
+{"text": "can you push the lab report deadline back a day", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "announce that dues are due next week", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "check the org fund balance", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "search saved notes: TCP handshakes", "intent": "SEARCH_NOTES", "entities": {"topic": "TCP handshakes"}}
+{"text": "What classes do I have this week", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "can you break down recursion for me", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "recursion"}}
+{"text": "show me all my classes for the week", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "give me a quiz on SQL joins", "intent": "QUIZ_TOPIC", "entities": {"topic": "SQL joins"}}
+{"text": "show tomorrow's schedule", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "I'd like to view my class schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "what's outstanding in HDL", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "HDL"}}
+{"text": "give me a plain-english explanation of 2's complement", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "2's complement"}}
+{"text": "cancel HDL class for tomorrow (not the deadline, the class)", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "explain process scheduling step by step", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "what classes today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "what's left to submit", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "no class for LCD Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "LCD", "date": "Friday"}}
+{"text": "we received 500 pesos from membership dues, log it", "intent": "RECORD_DEPOSIT", "entities": {"amount": 500}}
+{"text": "log an expense of ₱450 for supplies", "intent": "RECORD_EXPENSE", "entities": {"amount": 450, "description": "supplies"}}
+{"text": "show me what's due within the week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "tomorrow's classes?", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "no class for Thesis tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "Thesis", "date": "tomorrow"}}
+{"text": "push the CS101 deadline back a day", "intent": "UPDATE_DEADLINE", "entities": {"course": "CS101"}}
+{"text": "recent transaction history", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "add a LCD deadline due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "LCD", "date": "tomorrow"}}
+{"text": "mark Thesis as cancelled Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "Thesis", "date": "Friday"}}
+{"text": "put together a quiz about TCP handshakes", "intent": "QUIZ_TOPIC", "entities": {"topic": "TCP handshakes"}}
+{"text": "Give me practice problems on combinational logic", "intent": "PRACTICE_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "delete the Networks deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "Networks"}}
+{"text": "there's no class in LCD this Friday", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "set a deadline for the thesis proposal tomorrow", "intent": "CREATE_DEADLINE", "entities": {"title": "thesis proposal", "date": "tomorrow"}}
+{"text": "What deadlines do I have for LCD?", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "LCD"}}
+{"text": "what's left in our funds", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "show the fund's transaction history", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "Give me practice problems on dynamic programming", "intent": "PRACTICE_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "what's due for LCD", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "LCD"}}
+{"text": "add a deposit of 175 from bake sale leftovers", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "what do I owe by end of week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "give me a clear explanation of binary trees", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "binary trees"}}
+{"text": "Any new announcements?", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "record a 3000 peso deposit from the school grant", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "track a new deadline for me: Networks report", "intent": "CREATE_DEADLINE", "entities": {"course": "Networks", "title": "report"}}
+{"text": "add a deposit, 950 pesos, from alumni donation", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "move my thesis proposal deadline to next week", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "put up a notice that membership renewal is open", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "show me the latest announcements", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "show current balance", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "mark Networks as cancelled Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "Networks", "date": "Friday"}}
+{"text": "transaction log please", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "add a CS101 deadline due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "date": "tomorrow"}}
+{"text": "show me the announcement board", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "Explain how binary search trees works", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "start a poll on where to hold the event", "intent": "CREATE_POLL", "entities": {}}
+{"text": "I want a quiz covering Boolean algebra", "intent": "QUIZ_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "I want a quiz covering OSI layers", "intent": "QUIZ_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "I want to understand dynamic programming better", "intent": "LEARN_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "Can you mark Thesis as having no class tomorrow?", "intent": "MARK_NO_CLASS", "entities": {"course": "Thesis", "date": "tomorrow"}}
+{"text": "hook me up with practice problems for linked lists", "intent": "PRACTICE_TOPIC", "entities": {"topic": "linked lists"}}
+{"text": "show recent deposits and expenses", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "announce that the event was rescheduled", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "What do I have today?", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "give me untimed practice on Boolean algebra", "intent": "PRACTICE_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "change the lab report due date to next Friday", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "no class for HDL tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "tomorrow"}}
+{"text": "log an expense of 800 for food for the event", "intent": "RECORD_EXPENSE", "entities": {"amount": 800, "description": "food for the event"}}
+{"text": "test my knowledge of recursion", "intent": "QUIZ_TOPIC", "entities": {"topic": "recursion"}}
+{"text": "Thesis deadlines please", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Thesis"}}
+{"text": "run a quiz on finite automata", "intent": "QUIZ_TOPIC", "entities": {"topic": "finite automata"}}
+{"text": "explain SQL joins step by step", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "SQL joins"}}
+{"text": "make a note about the recursion lecture", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "put up an announcement about elections", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "add a CS101 deadline due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "date": "next Monday"}}
+{"text": "get rid of deadline 3", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 3}}
+{"text": "create a new deadline for LCD, due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "LCD", "date": "next Monday"}}
+{"text": "add a HDL deadline due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "HDL", "date": "next Monday"}}
+{"text": "add a 900 peso expense for catering", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "anything due in HDL class", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "HDL"}}
+{"text": "poll the members about the schedule change", "intent": "CREATE_POLL", "entities": {}}
+{"text": "mark LCD as cancelled tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "LCD", "date": "tomorrow"}}
+{"text": "add a Thesis deadline due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "Thesis", "date": "next Monday"}}
+{"text": "what is combinational logic", "intent": "LEARN_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "give me the transaction log", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "add this deposit: 700 from ticket sales", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "make a poll for the event date", "intent": "CREATE_POLL", "entities": {}}
+{"text": "any polls I haven't answered", "intent": "GET_POLLS", "entities": {}}
+{"text": "can you teach me OSI layers", "intent": "LEARN_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "quiz time: graph traversal", "intent": "QUIZ_TOPIC", "entities": {"topic": "graph traversal"}}
+{"text": "list the last few expenses", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "record a 1800 deposit from the fundraiser", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "search for recursion in my notes", "intent": "SEARCH_NOTES", "entities": {"topic": "recursion"}}
+{"text": "add a LCD deadline due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "LCD", "date": "Friday"}}
+{"text": "Show me my class schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "what assignments are due", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "how does sorting algorithms work, teach me", "intent": "LEARN_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "create a new deadline for HDL, due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "HDL", "date": "next Monday"}}
+{"text": "we got 350 from raffle tickets, log the deposit", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "catch me up on any polls", "intent": "GET_POLLS", "entities": {}}
+{"text": "please log a new deadline for CS101", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101"}}
+{"text": "what's my timetable look like", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "what's outstanding right now", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "what's on my deadline list", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "score my understanding of hash tables with a quiz", "intent": "QUIZ_TOPIC", "entities": {"topic": "hash tables"}}
+{"text": "cancel the HDL deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "HDL"}}
+{"text": "show me what's been announced", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "let's practice combinational logic together", "intent": "PRACTICE_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "check our current funds", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "announce the schedule for finals week", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "mark CS101 as cancelled tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "CS101", "date": "tomorrow"}}
+{"text": "cancel HDL tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "tomorrow"}}
+{"text": "update the Networks deadline time to noon", "intent": "UPDATE_DEADLINE", "entities": {"course": "Networks"}}
+{"text": "show me the current polls", "intent": "GET_POLLS", "entities": {}}
+{"text": "tomorrow schedule check", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "What's our fund balance?", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "give me exercises on graph traversal", "intent": "PRACTICE_TOPIC", "entities": {"topic": "graph traversal"}}
+{"text": "create a new deadline for HDL, due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "HDL", "date": "Friday"}}
+{"text": "any bulletins posted lately", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "write down a note before I forget this", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "summarize this week's deadlines for me", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "jot down what was covered in lecture today", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "walk me through combinational logic", "intent": "LEARN_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "show me recent debits and credits", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "give me next week's deadlines", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "give me exercises on database normalization", "intent": "PRACTICE_TOPIC", "entities": {"topic": "database normalization"}}
+{"text": "can you help me understand sorting algorithms", "intent": "LEARN_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "add a note recapping the study session", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "get me up to speed on dynamic programming", "intent": "LEARN_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "show my weekly classes", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "professor cancelled HDL tomorrow, update it", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "log a 600 peso expense for transportation", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "what classes tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "add a note: remember to review chapter 4", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "what's coming due next week specifically", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "can you simplify regular expressions for me", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "regular expressions"}}
+{"text": "give me the deadline overview", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "view my timetable", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "make a note of the professor's office hours", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "can you explain dynamic programming", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "I need to learn SQL joins from scratch", "intent": "LEARN_TOPIC", "entities": {"topic": "SQL joins"}}
+{"text": "show me LCD deadlines", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "LCD"}}
+{"text": "Give me practice problems on SQL joins", "intent": "PRACTICE_TOPIC", "entities": {"topic": "SQL joins"}}
+{"text": "let everyone know the meeting moved to Friday", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "check for open polls", "intent": "GET_POLLS", "entities": {}}
+{"text": "quick check: classes tomorrow?", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "log an expense of 1000 peso for venue rental", "intent": "RECORD_EXPENSE", "entities": {"amount": 1000, "description": "venue rental"}}
+{"text": "next day schedule please", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "what am I attending today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "break down how recursion works", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "recursion"}}
+{"text": "pull my OSI layers notes up", "intent": "SEARCH_NOTES", "entities": {"topic": "OSI layers"}}
+{"text": "what's the deal with my schedule this week", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "show recent income and expenses", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "give me the last few fund transactions", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "what's happening in class tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "need my class timetable asap", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "what's the explanation behind database normalization", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "database normalization"}}
+{"text": "anything posted this week", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "will I have class tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "how much do we currently have", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "what did we spend money on recently", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "remove the Networks deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "Networks"}}
+{"text": "anything due in Networks class", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Networks"}}
+{"text": "move deadline 3 to Friday", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 3, "date": "Friday"}}
+{"text": "current balance please", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "anything to vote on today", "intent": "GET_POLLS", "entities": {}}
+{"text": "Can you add a deadline for HDL this week?", "intent": "CREATE_DEADLINE", "entities": {"course": "HDL", "date": "this week"}}
+{"text": "show me current voting options", "intent": "GET_POLLS", "entities": {}}
+{"text": "we spent ₱450 on supplies, log that", "intent": "RECORD_EXPENSE", "entities": {"amount": 450, "description": "supplies"}}
+{"text": "help me learn the basics of 2's complement", "intent": "LEARN_TOPIC", "entities": {"topic": "2's complement"}}
+{"text": "no class for CS101 Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "CS101", "date": "Friday"}}
+{"text": "what's due between now and Sunday", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "what's left to submit for Networks", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Networks"}}
+{"text": "what's outstanding in CS101", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "CS101"}}
+{"text": "give me recent deposits and withdrawals", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "upcoming week deadlines, run it down for me", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "save a note with the homework instructions", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "log a 250 peso membership fee deposit", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "check LCD for pending deadlines", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "LCD"}}
+{"text": "what's the poll situation right now", "intent": "GET_POLLS", "entities": {}}
+{"text": "give me my full weekly timetable", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "Record a deposit of 500 pesos", "intent": "RECORD_DEPOSIT", "entities": {"amount": 500}}
+{"text": "score my understanding of linked lists with a quiz", "intent": "QUIZ_TOPIC", "entities": {"topic": "linked lists"}}
+{"text": "what's our remaining budget", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "check my notes for hash tables", "intent": "SEARCH_NOTES", "entities": {"topic": "hash tables"}}
+{"text": "Record a deposit of 1200", "intent": "RECORD_DEPOSIT", "entities": {"amount": 1200}}
+{"text": "I need to drill process scheduling", "intent": "PRACTICE_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "give me some drills on process scheduling", "intent": "PRACTICE_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "show me HDL deadlines", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "HDL"}}
+{"text": "let me know what I have today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "create a quick poll for snack preferences", "intent": "CREATE_POLL", "entities": {}}
+{"text": "change the due date on the lab report", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "can you show my overall schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "check my notes for binary search trees", "intent": "SEARCH_NOTES", "entities": {"topic": "binary search trees"}}
+{"text": "can you teach me 2's complement", "intent": "LEARN_TOPIC", "entities": {"topic": "2's complement"}}
+{"text": "look for my OSI layers notes", "intent": "SEARCH_NOTES", "entities": {"topic": "OSI layers"}}
+{"text": "get rid of the Thesis deadline entry", "intent": "DELETE_DEADLINE", "entities": {"course": "Thesis"}}
+{"text": "get rid of deadline 7", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 7}}
+{"text": "what's the announcement situation", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "create a note titled midterm review", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "remove the Thesis deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "Thesis"}}
+{"text": "record that we got 900 from the bake sale", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "anything due in LCD class", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "LCD"}}
+{"text": "can you reschedule deadline 7", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 7}}
+{"text": "there won't be class in CS101 tomorrow", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "I want more reps on Boolean algebra", "intent": "PRACTICE_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "post a notice about the volunteer sign-up", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "get rid of the CS101 deadline entry", "intent": "DELETE_DEADLINE", "entities": {"course": "CS101"}}
+{"text": "Any classes today?", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "log a 250 expense for supplies restock", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "look for my karnaugh maps notes", "intent": "SEARCH_NOTES", "entities": {"topic": "karnaugh maps"}}
+{"text": "give me a rundown of what's due", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Record an expense of ₱450 for supplies", "intent": "RECORD_EXPENSE", "entities": {"amount": 450, "description": "supplies"}}
+{"text": "practice set for sorting algorithms please", "intent": "PRACTICE_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "add a Networks deadline due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "Networks", "date": "Friday"}}
+{"text": "list my pending deadlines", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "can you break down Boolean algebra for me", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "give me a quiz on combinational logic", "intent": "QUIZ_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "create a poll about the fundraiser idea", "intent": "CREATE_POLL", "entities": {}}
+{"text": "do I have anything today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "next 7 days, what's due", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "do I have anything saved on database normalization", "intent": "SEARCH_NOTES", "entities": {"topic": "database normalization"}}
+{"text": "our CS101 professor isn't holding class tomorrow", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "show active polls", "intent": "GET_POLLS", "entities": {}}
+{"text": "give me some drills on binary search trees", "intent": "PRACTICE_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "practice set for 2's complement please", "intent": "PRACTICE_TOPIC", "entities": {"topic": "2's complement"}}
+{"text": "explain the concept of recursion", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "recursion"}}
+{"text": "add a 600 pesos deposit from sponsorship", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "give me exercises on sorting algorithms", "intent": "PRACTICE_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "weekly deadline roundup please", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "show unanswered polls", "intent": "GET_POLLS", "entities": {}}
+{"text": "What deadlines do I have?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "What's due this week?", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "just explain it, don't quiz me, on recursion", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "recursion"}}
+{"text": "show my to-do list of deadlines", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Quiz me on binary trees", "intent": "QUIZ_TOPIC", "entities": {"topic": "binary trees"}}
+{"text": "anything due before the week ends", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "get rid of the lab report deadline", "intent": "DELETE_DEADLINE", "entities": {}}
+{"text": "cancel deadline 12 please", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 12}}
+{"text": "test my knowledge of finite automata", "intent": "QUIZ_TOPIC", "entities": {"topic": "finite automata"}}
+{"text": "what's the latest announcement", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "this week's deadline list please", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "did I write anything about sorting algorithms", "intent": "SEARCH_NOTES", "entities": {"topic": "sorting algorithms"}}
+{"text": "record an expense of 275 for cleaning supplies", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "give me exercises on OSI layers", "intent": "PRACTICE_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "give me a quiz on sorting algorithms", "intent": "QUIZ_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "what am I facing next week deadline-wise", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "search my notes for graph traversal", "intent": "SEARCH_NOTES", "entities": {"topic": "graph traversal"}}
+{"text": "make a note about what the professor said", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "what's due for Thesis", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Thesis"}}
+{"text": "take that deadline off my list", "intent": "DELETE_DEADLINE", "entities": {}}
+{"text": "set up a vote for the new logo", "intent": "CREATE_POLL", "entities": {}}
+{"text": "how does hash tables work, teach me", "intent": "LEARN_TOPIC", "entities": {"topic": "hash tables"}}
+{"text": "get rid of deadline 12", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 12}}
+{"text": "make an announcement that the event is postponed", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "show all recent fund activity", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "take a note about today's class", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "clear the lab report deadline", "intent": "DELETE_DEADLINE", "entities": {}}
+{"text": "add a deposit of 500 pesos to the fund", "intent": "RECORD_DEPOSIT", "entities": {"amount": 500}}
+{"text": "show what's due only in LCD", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "LCD"}}
+{"text": "let members know about the schedule change", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "current fund status please", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "help me learn the basics of linked lists", "intent": "LEARN_TOPIC", "entities": {"topic": "linked lists"}}
+{"text": "show recent financial activity", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "search for finite automata in my notes", "intent": "SEARCH_NOTES", "entities": {"topic": "finite automata"}}
+{"text": "check CS101 for pending deadlines", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "CS101"}}
+{"text": "no class for Thesis Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "Thesis", "date": "Friday"}}
+{"text": "what's my day look like tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "new HDL assignment due this week, add it", "intent": "CREATE_DEADLINE", "entities": {"course": "HDL", "date": "this week"}}
+{"text": "delete that old deadline entry", "intent": "DELETE_DEADLINE", "entities": {}}
+{"text": "introduce me to dynamic programming", "intent": "LEARN_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "cancel the Networks deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "Networks"}}
+{"text": "reschedule the LCD deadline to Friday", "intent": "UPDATE_DEADLINE", "entities": {"course": "LCD", "date": "Friday"}}
+{"text": "what's due for all my classes, not just one", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "what's the current fund total", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "hook me up with practice problems for combinational logic", "intent": "PRACTICE_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "give me the announcement rundown", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "we paid 190 for parking, log the expense", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "do I have anything tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "I'm trying to learn linked lists", "intent": "LEARN_TOPIC", "entities": {"topic": "linked lists"}}
+{"text": "explain hash tables step by step", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "hash tables"}}
+{"text": "check HDL for pending deadlines", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "HDL"}}
+{"text": "explain the concept of SQL joins", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "SQL joins"}}
+{"text": "did they announce anything today", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "do I have anything saved on SQL joins", "intent": "SEARCH_NOTES", "entities": {"topic": "SQL joins"}}
+{"text": "share news about the upcoming social event", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "cancel deadline 3 please", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 3}}
+{"text": "no class for HDL Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "Friday"}}
+{"text": "search saved notes: regular expressions", "intent": "SEARCH_NOTES", "entities": {"topic": "regular expressions"}}
+{"text": "what's on the docket for this week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "run a quiz on graph traversal", "intent": "QUIZ_TOPIC", "entities": {"topic": "graph traversal"}}
+{"text": "create a note with today's key takeaways", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "what's happening in class today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "any new polls posted", "intent": "GET_POLLS", "entities": {}}
+{"text": "what should I expect due this week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "post something about tomorrow's GA", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "display my schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "teach me first before I take a quiz on joins in SQL", "intent": "LEARN_TOPIC", "entities": {"topic": "joins in SQL"}}
+{"text": "Could you remove deadline 12?", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 12}}
+{"text": "help me learn the basics of process scheduling", "intent": "LEARN_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "give me a plain-english explanation of OSI layers", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "explain combinational logic like I'm five", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "look for my process scheduling notes", "intent": "SEARCH_NOTES", "entities": {"topic": "process scheduling"}}
+{"text": "pull my TCP handshakes notes up", "intent": "SEARCH_NOTES", "entities": {"topic": "TCP handshakes"}}
+{"text": "what polls are open right now", "intent": "GET_POLLS", "entities": {}}
+{"text": "show today's schedule", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "give me tomorrow's timetable", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "mark HDL as cancelled tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "tomorrow"}}
+{"text": "what came in and out of the fund recently", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "check for new posts", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "search saved notes: SQL joins", "intent": "SEARCH_NOTES", "entities": {"topic": "SQL joins"}}
+{"text": "what does Thesis have due", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Thesis"}}
+{"text": "Can you pull up my schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "Could you remove deadline 7?", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 7}}
+{"text": "class schedule for today please", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "add an expense of 620 for equipment rental", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "what do I have due next week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "list recent fund movements", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "how much is in the org account", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "show me all announcements", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "are there polls to answer", "intent": "GET_POLLS", "entities": {}}
+{"text": "what's the org's balance today", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "give me a heads up on any new posts", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "check tomorrow's schedule for me", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "make a poll for choosing between two venues", "intent": "CREATE_POLL", "entities": {}}
+{"text": "Schedule an Thesis deadline for Friday evening.", "intent": "CREATE_DEADLINE", "entities": {"course": "Thesis", "date": "Friday"}}
+{"text": "do I have any classes today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "I want to practice karnaugh maps", "intent": "PRACTICE_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "HDL deadlines please", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "HDL"}}
+{"text": "give me the Networks deadline list", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Networks"}}
+{"text": "give me a quiz on regular expressions", "intent": "QUIZ_TOPIC", "entities": {"topic": "regular expressions"}}
+{"text": "what have they announced lately", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "is there class today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "delete the Thesis deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "Thesis"}}
+{"text": "Can you mark LCD as having no class tomorrow?", "intent": "MARK_NO_CLASS", "entities": {"course": "LCD", "date": "tomorrow"}}
+{"text": "can you explain hash tables", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "hash tables"}}
+{"text": "give me some drills on SQL joins", "intent": "PRACTICE_TOPIC", "entities": {"topic": "SQL joins"}}
+{"text": "can you set up a deadline, CS101, this week at 5 PM", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "date": "this week", "time": "17:00"}}
+{"text": "do I have anything saved on joins in SQL", "intent": "SEARCH_NOTES", "entities": {"topic": "joins in SQL"}}
+{"text": "erase the project deadline", "intent": "DELETE_DEADLINE", "entities": {}}
+{"text": "give me a plain-english explanation of TCP handshakes", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "TCP handshakes"}}
+{"text": "save my thoughts on today's reading as a note", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "what do I owe in terms of assignments", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "can you reschedule deadline 21", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 21}}
+{"text": "Can you mark Networks as having no class today?", "intent": "MARK_NO_CLASS", "entities": {"course": "Networks", "date": "today"}}
+{"text": "Add an CS101 deadline for this week.", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "date": "this week"}}
+{"text": "CS101 deadlines please", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "CS101"}}
+{"text": "test my knowledge of process scheduling", "intent": "QUIZ_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "let the org know the deadline was extended", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "show me everything due this coming week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "pull up announcements", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "org balance check", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "test my knowledge of binary search trees", "intent": "QUIZ_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "quiz time: TCP handshakes", "intent": "QUIZ_TOPIC", "entities": {"topic": "TCP handshakes"}}
+{"text": "any news from the org", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "remove the HDL deadline, it's cancelled", "intent": "DELETE_DEADLINE", "entities": {"course": "HDL"}}
+{"text": "next week deadlines, what do I have", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "start a vote on the merch design", "intent": "CREATE_POLL", "entities": {}}
+{"text": "announce that the workshop slots are full", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "what's due across all my classes", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "push the HDL deadline back a day", "intent": "UPDATE_DEADLINE", "entities": {"course": "HDL"}}
+{"text": "check today's schedule for me", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "could I get a look at my schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "give me a 7-day deadline outlook", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "anything announced recently", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "I'm trying to learn hash tables", "intent": "LEARN_TOPIC", "entities": {"topic": "hash tables"}}
+{"text": "Can you mark HDL as having no class today?", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "today"}}
+{"text": "we spent 1000 peso on venue rental, log that", "intent": "RECORD_EXPENSE", "entities": {"amount": 1000, "description": "venue rental"}}
+{"text": "add an expense of 950 for the guest speaker", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "anything new from the officers", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "what am I attending tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "did the org post anything new", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "post that the venue changed", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "we collected 1100 in dues, please deposit it", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "give me the past week of transactions", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "can you explain finite automata", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "finite automata"}}
+{"text": "give me untimed practice on TCP handshakes", "intent": "PRACTICE_TOPIC", "entities": {"topic": "TCP handshakes"}}
+{"text": "do I have anything saved on Boolean algebra", "intent": "SEARCH_NOTES", "entities": {"topic": "Boolean algebra"}}
+{"text": "save a note titled exam prep", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "make a poll for choosing the guest speaker", "intent": "CREATE_POLL", "entities": {}}
+{"text": "show me where the money went", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "show what's due only in HDL", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "HDL"}}
+{"text": "Could you remove deadline 21?", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 21}}
+{"text": "we paid 500 for printing flyers, log the expense", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "log an expense of 150 for printing", "intent": "RECORD_EXPENSE", "entities": {"amount": 150, "description": "printing"}}
+{"text": "what's today looking like class-wise", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "do I have notes about karnaugh maps", "intent": "SEARCH_NOTES", "entities": {"topic": "karnaugh maps"}}
+{"text": "make a poll to decide the fundraiser theme", "intent": "CREATE_POLL", "entities": {}}
+{"text": "let's practice Boolean algebra together", "intent": "PRACTICE_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "what's being voted on", "intent": "GET_POLLS", "entities": {}}
+{"text": "mark Networks as cancelled tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "Networks", "date": "tomorrow"}}
+{"text": "tomorrow, what do I have", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "Explain how TCP handshakes works", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "TCP handshakes"}}
+{"text": "deadlines please", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "can I see my classes", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "show deadlines for the week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "poll status please", "intent": "GET_POLLS", "entities": {}}
+{"text": "Show me all my deadlines", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "we spent 150 on printing, log that", "intent": "RECORD_EXPENSE", "entities": {"amount": 150, "description": "printing"}}
+{"text": "put together a quiz about process scheduling", "intent": "QUIZ_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "clarify how process scheduling works for me", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "Explain how karnaugh maps works", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "no class for LCD today", "intent": "MARK_NO_CLASS", "entities": {"course": "LCD", "date": "today"}}
+{"text": "change deadline 3 to next week", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 3, "date": "next week"}}
+{"text": "mark Networks as cancelled today", "intent": "MARK_NO_CLASS", "entities": {"course": "Networks", "date": "today"}}
+{"text": "I want to practice hash tables", "intent": "PRACTICE_TOPIC", "entities": {"topic": "hash tables"}}
+{"text": "give me today's timetable", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "Record a deposit of ₱2,000", "intent": "RECORD_DEPOSIT", "entities": {"amount": 2000}}
+{"text": "jot down a reminder about the quiz format", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "start a poll to gauge interest in the workshop", "intent": "CREATE_POLL", "entities": {}}
+{"text": "help me get started with finite automata", "intent": "LEARN_TOPIC", "entities": {"topic": "finite automata"}}
+{"text": "can you break down graph traversal for me", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "graph traversal"}}
+{"text": "what does the fund look like right now", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "add a note about the group project ideas", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "how much money do we have left", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "how much cash do we have on hand", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "what do I still need to turn in", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "deadlines overview please", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "full schedule please", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "create a new deadline for HDL, due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "HDL", "date": "tomorrow"}}
+{"text": "clarify how recursion works for me", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "recursion"}}
+{"text": "fund balance right now", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "Can you mark Thesis as having no class Friday?", "intent": "MARK_NO_CLASS", "entities": {"course": "Thesis", "date": "Friday"}}
+{"text": "show fund transactions from this week", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "give me open votes", "intent": "GET_POLLS", "entities": {}}
+{"text": "update the Thesis deadline time to noon", "intent": "UPDATE_DEADLINE", "entities": {"course": "Thesis"}}
+{"text": "no class for HDL today", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "today"}}
+{"text": "weekly rundown of deadlines", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "did I miss any announcements", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "run a quiz on Boolean algebra", "intent": "QUIZ_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "I don't need that deadline anymore, remove it", "intent": "DELETE_DEADLINE", "entities": {}}
+{"text": "give me open polls", "intent": "GET_POLLS", "entities": {}}
+{"text": "I want to understand recursion better", "intent": "LEARN_TOPIC", "entities": {"topic": "recursion"}}
+{"text": "what do my classes look like today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "show this week's pending work", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "note to self: finish the thesis outline", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "I need to announce something to the org", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "recent fund activity please", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "Can you mark HDL as having no class tomorrow?", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "tomorrow"}}
+{"text": "Record an expense of 800 for food for the event", "intent": "RECORD_EXPENSE", "entities": {"amount": 800, "description": "food for the event"}}
+{"text": "delete deadline 21", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 21}}
+{"text": "anything due soon?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Save a note about today's lecture on TCP", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "start a poll for choosing the theme", "intent": "CREATE_POLL", "entities": {}}
+{"text": "mark CS101 as cancelled Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "CS101", "date": "Friday"}}
+{"text": "I want to understand combinational logic better", "intent": "LEARN_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "get me up to speed on regular expressions", "intent": "LEARN_TOPIC", "entities": {"topic": "regular expressions"}}
+{"text": "give me a balance update", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "is there a poll I need to vote on", "intent": "GET_POLLS", "entities": {}}
+{"text": "Move the HDL deadline to this week", "intent": "UPDATE_DEADLINE", "entities": {"course": "HDL", "date": "this week"}}
+{"text": "mark LCD as cancelled today", "intent": "MARK_NO_CLASS", "entities": {"course": "LCD", "date": "today"}}
+{"text": "cancel the CS101 deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "CS101"}}
+{"text": "can you explain linked lists", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "linked lists"}}
+{"text": "I need to drill regular expressions", "intent": "PRACTICE_TOPIC", "entities": {"topic": "regular expressions"}}
+{"text": "can you help me understand combinational logic", "intent": "LEARN_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "look up my notes on SQL joins", "intent": "SEARCH_NOTES", "entities": {"topic": "SQL joins"}}
+{"text": "no class for Networks today", "intent": "MARK_NO_CLASS", "entities": {"course": "Networks", "date": "today"}}
+{"text": "no class for Networks Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "Networks", "date": "Friday"}}
+{"text": "give me the full deadline list", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "show pending assignments", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "what's on deck this week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "any surveys I need to fill out", "intent": "GET_POLLS", "entities": {}}
+{"text": "create a deadline for CS101 homework due Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "title": "homework", "date": "Monday"}}
+{"text": "add a Thesis deadline due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "Thesis", "date": "tomorrow"}}
+{"text": "make a poll asking for feedback on the last event", "intent": "CREATE_POLL", "entities": {}}
+{"text": "remove HDL from tomorrow's schedule, no class", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "Can you mark CS101 as having no class today?", "intent": "MARK_NO_CLASS", "entities": {"course": "CS101", "date": "today"}}
+{"text": "list out my classes", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "what does my week look like class-wise", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "any polls I missed", "intent": "GET_POLLS", "entities": {}}
+{"text": "jot this down: review OSI layers before quiz", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "change deadline 21 to next week", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 21, "date": "next week"}}
+{"text": "Could you remove deadline 3?", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 3}}
+{"text": "what's been deposited or spent lately", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "what expenses were logged recently", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "set up a poll about the field trip destination", "intent": "CREATE_POLL", "entities": {}}
+{"text": "I want practice problems, not a quiz, on OSI layers", "intent": "PRACTICE_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "show total funds available", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "we spent 800 on food for the event, log that", "intent": "RECORD_EXPENSE", "entities": {"amount": 800, "description": "food for the event"}}
+{"text": "set up a poll about the community service project", "intent": "CREATE_POLL", "entities": {}}
+{"text": "pull up my full schedule please", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "list deadlines for my Thesis course", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Thesis"}}
+{"text": "is there class tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "help me get started with OSI layers", "intent": "LEARN_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "what am I missing in CS101", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "CS101"}}
+{"text": "Can you mark CS101 as having no class tomorrow?", "intent": "MARK_NO_CLASS", "entities": {"course": "CS101", "date": "tomorrow"}}
+{"text": "I need to see my class schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "create a poll for the general assembly agenda", "intent": "CREATE_POLL", "entities": {}}
+{"text": "any lectures tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "announce that applications are now open", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "create a new deadline for CS101, due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "date": "tomorrow"}}
+{"text": "What do I have tomorrow?", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "update the HDL deadline time to 9 AM", "intent": "UPDATE_DEADLINE", "entities": {"course": "HDL"}}
+{"text": "no class for Networks tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "Networks", "date": "tomorrow"}}
+{"text": "change deadline 12 to next week", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 12, "date": "next week"}}
+{"text": "update the LCD deadline time to 10:30 AM", "intent": "UPDATE_DEADLINE", "entities": {"course": "LCD"}}
+{"text": "make an announcement for the fundraiser", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "what's due for the rest of the week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "practice set for karnaugh maps please", "intent": "PRACTICE_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "give me a week-by-week deadline check", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "save this as a note: check office hours", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "walk me through recent fund activity", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "put in a deposit of 2500 from the sponsor", "intent": "RECORD_DEPOSIT", "entities": {}}
+{"text": "I want to learn karnaugh maps", "intent": "LEARN_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "give me some drills on joins in SQL", "intent": "PRACTICE_TOPIC", "entities": {"topic": "joins in SQL"}}
+{"text": "update the CS101 deadline time to 5 PM", "intent": "UPDATE_DEADLINE", "entities": {"course": "CS101"}}
+{"text": "Add this assignment to the deadlines.", "intent": "CREATE_DEADLINE", "entities": {}}
+{"text": "I need to learn database normalization from scratch", "intent": "LEARN_TOPIC", "entities": {"topic": "database normalization"}}
+{"text": "move deadline 21 to Friday", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 21, "date": "Friday"}}
+{"text": "log a deposit of 1200", "intent": "RECORD_DEPOSIT", "entities": {"amount": 1200}}
+{"text": "add a quick note about SQL joins", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "can you quiz me on finite automata", "intent": "QUIZ_TOPIC", "entities": {"topic": "finite automata"}}
+{"text": "do I have anything saved on graph traversal", "intent": "SEARCH_NOTES", "entities": {"topic": "graph traversal"}}
+{"text": "anything due specifically for Thesis", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Thesis"}}
+{"text": "explain finite automata like I'm five", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "finite automata"}}
+{"text": "did the org post a new poll", "intent": "GET_POLLS", "entities": {}}
+{"text": "reschedule the Networks deadline to tomorrow", "intent": "UPDATE_DEADLINE", "entities": {"course": "Networks", "date": "tomorrow"}}
+{"text": "delete the HDL deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "HDL"}}
+{"text": "post an announcement about room changes", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "What deadlines do I have for Networks?", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Networks"}}
+{"text": "flag Networks as no-class for tomorrow", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "change deadline 7 to next week", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 7, "date": "next week"}}
+{"text": "create a poll asking which day works best", "intent": "CREATE_POLL", "entities": {}}
+{"text": "mark that there's no LCD session today", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "put together a quiz about dynamic programming", "intent": "QUIZ_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "Can you mark LCD as having no class today?", "intent": "MARK_NO_CLASS", "entities": {"course": "LCD", "date": "today"}}
+{"text": "no class for LCD tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "LCD", "date": "tomorrow"}}
+{"text": "quiz time: finite automata", "intent": "QUIZ_TOPIC", "entities": {"topic": "finite automata"}}
+{"text": "what's the recent spending history", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "do I have anything due", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "delete the LCD deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "LCD"}}
+{"text": "Put an Networks lab report due next Monday at noon.", "intent": "CREATE_DEADLINE", "entities": {"course": "Networks", "title": "lab report", "date": "next Monday", "time": "12:00"}}
+{"text": "we received 300 peso from membership dues, log it", "intent": "RECORD_DEPOSIT", "entities": {"amount": 300}}
+{"text": "practice set for OSI layers please", "intent": "PRACTICE_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "help me learn the basics of database normalization", "intent": "LEARN_TOPIC", "entities": {"topic": "database normalization"}}
+{"text": "we received 1200 from membership dues, log it", "intent": "RECORD_DEPOSIT", "entities": {"amount": 1200}}
+{"text": "let's do some practice on joins in SQL", "intent": "PRACTICE_TOPIC", "entities": {"topic": "joins in SQL"}}
+{"text": "create a new deadline for Networks, due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "Networks", "date": "next Monday"}}
+{"text": "transaction history for the fund", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "what's new on the announcement board", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "Explain how joins in SQL works", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "joins in SQL"}}
+{"text": "give me multiple choice questions on Boolean algebra", "intent": "QUIZ_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "Move the Networks deadline to tomorrow", "intent": "UPDATE_DEADLINE", "entities": {"course": "Networks", "date": "tomorrow"}}
+{"text": "get me up to speed on joins in SQL", "intent": "LEARN_TOPIC", "entities": {"topic": "joins in SQL"}}
+{"text": "catch me up on announcements", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "check my notes for finite automata", "intent": "SEARCH_NOTES", "entities": {"topic": "finite automata"}}
+{"text": "get rid of the LCD deadline entry", "intent": "DELETE_DEADLINE", "entities": {"course": "LCD"}}
+{"text": "Can you mark LCD as having no class Friday?", "intent": "MARK_NO_CLASS", "entities": {"course": "LCD", "date": "Friday"}}
+{"text": "delete the thesis proposal deadline", "intent": "DELETE_DEADLINE", "entities": {}}
+{"text": "what's due for HDL", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "HDL"}}
+{"text": "find anything I've written on process scheduling", "intent": "SEARCH_NOTES", "entities": {"topic": "process scheduling"}}
+{"text": "find anything I've written on dynamic programming", "intent": "SEARCH_NOTES", "entities": {"topic": "dynamic programming"}}
+{"text": "may I see my class timetable", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "give me a graded quiz about Boolean algebra", "intent": "QUIZ_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "give me untimed practice on combinational logic", "intent": "PRACTICE_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "pull up notes about recursion", "intent": "SEARCH_NOTES", "entities": {"topic": "recursion"}}
+{"text": "what's the latest transaction history", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "put out an announcement about the deadline extension", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "log a deposit of ₱2,000", "intent": "RECORD_DEPOSIT", "entities": {"amount": 2000}}
+{"text": "delete deadline 7", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 7}}
+{"text": "look up my notes on regular expressions", "intent": "SEARCH_NOTES", "entities": {"topic": "regular expressions"}}
+{"text": "start a poll on the budget allocation", "intent": "CREATE_POLL", "entities": {}}
+{"text": "am I free today or do I have class", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "cancel the LCD deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "LCD"}}
+{"text": "delete the CS101 deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "CS101"}}
+{"text": "make a poll asking who's attending", "intent": "CREATE_POLL", "entities": {}}
+{"text": "break down how karnaugh maps works", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "today's timetable", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "pull up notes about sorting algorithms", "intent": "SEARCH_NOTES", "entities": {"topic": "sorting algorithms"}}
+{"text": "create a new deadline for Thesis, due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "Thesis", "date": "tomorrow"}}
+{"text": "Can you give me my deadlines", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "check announcements", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "give me the treasury balance", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "tomorrow's timetable", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "give me a quiz on dynamic programming", "intent": "QUIZ_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "did I write anything about binary trees", "intent": "SEARCH_NOTES", "entities": {"topic": "binary trees"}}
+{"text": "help me learn the basics of sorting algorithms", "intent": "LEARN_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "teach me about dynamic programming", "intent": "LEARN_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "recent org announcements please", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "What deadlines do I have for CS101?", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "CS101"}}
+{"text": "create a new deadline for Networks, due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "Networks", "date": "tomorrow"}}
+{"text": "Post an announcement about the meeting on Friday", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "Can you mark Thesis as having no class today?", "intent": "MARK_NO_CLASS", "entities": {"course": "Thesis", "date": "today"}}
+{"text": "show me polls I haven't voted in", "intent": "GET_POLLS", "entities": {}}
+{"text": "can you reschedule deadline 3", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 3}}
+{"text": "we received ₱2,000 from membership dues, log it", "intent": "RECORD_DEPOSIT", "entities": {"amount": 2000}}
+{"text": "record 1100 spent on the photobooth", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "anything due specifically for Networks", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Networks"}}
+{"text": "Can you mark Networks as having no class Friday?", "intent": "MARK_NO_CLASS", "entities": {"course": "Networks", "date": "Friday"}}
+{"text": "get me up to speed on binary trees", "intent": "LEARN_TOPIC", "entities": {"topic": "binary trees"}}
+{"text": "announce that the officer elections start Monday", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "give me a rundown of recent spending", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "add a note about the group meeting outcomes", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "what's due looking forward to next week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "is there a new announcement", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "HDL is cancelled tomorrow, not deleted just no class", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "what am I missing in Thesis", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Thesis"}}
+{"text": "set up a poll about the event format", "intent": "CREATE_POLL", "entities": {}}
+{"text": "list current polls", "intent": "GET_POLLS", "entities": {}}
+{"text": "can you post something about the general assembly", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "add a CS101 deadline due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "date": "Friday"}}
+{"text": "let me see recent announcements", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "no class for CS101 today", "intent": "MARK_NO_CLASS", "entities": {"course": "CS101", "date": "today"}}
+{"text": "make a poll about preferred meeting platform", "intent": "CREATE_POLL", "entities": {}}
+{"text": "any lectures today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "Please create an CS101 lab report deadline.", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "title": "lab report"}}
+{"text": "Move the Thesis deadline to tomorrow", "intent": "UPDATE_DEADLINE", "entities": {"course": "Thesis", "date": "tomorrow"}}
+{"text": "is voting open on anything", "intent": "GET_POLLS", "entities": {}}
+{"text": "mark HDL as cancelled today", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "today"}}
+{"text": "show me this week's full deadline picture", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "delete deadline 12", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 12}}
+{"text": "reschedule the Thesis deadline to tomorrow", "intent": "UPDATE_DEADLINE", "entities": {"course": "Thesis", "date": "tomorrow"}}
+{"text": "do I have class tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "explain binary search trees step by step", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "test me on 2's complement", "intent": "QUIZ_TOPIC", "entities": {"topic": "2's complement"}}
+{"text": "poll check please", "intent": "GET_POLLS", "entities": {}}
+{"text": "Find my notes on Boolean algebra", "intent": "SEARCH_NOTES", "entities": {"topic": "Boolean algebra"}}
+{"text": "add a LCD deadline due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "LCD", "date": "next Monday"}}
+{"text": "post about the change in event schedule", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "what's outstanding in Networks", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Networks"}}
+{"text": "test me on OSI layers", "intent": "QUIZ_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "help me learn the basics of Boolean algebra", "intent": "LEARN_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "give me multiple choice questions on sorting algorithms", "intent": "QUIZ_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "what's due, just for HDL though", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "HDL"}}
+{"text": "post an announcement for the recruitment drive", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "can we push my deadline later", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "I want a quiz covering joins in SQL", "intent": "QUIZ_TOPIC", "entities": {"topic": "joins in SQL"}}
+{"text": "shift the project deadline forward a couple days", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "post an update about the budget meeting", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "break down how sorting algorithms works", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "I have an Networks deadline to add, due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "Networks", "date": "next Monday"}}
+{"text": "give me CS101's deadline rundown", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "CS101"}}
+{"text": "what's my day look like", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "do I have notes about combinational logic", "intent": "SEARCH_NOTES", "entities": {"topic": "combinational logic"}}
+{"text": "Create a poll asking what time works for the meetup", "intent": "CREATE_POLL", "entities": {}}
+{"text": "I need to learn karnaugh maps from scratch", "intent": "LEARN_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "give me the fund balance", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "Are there any active polls?", "intent": "GET_POLLS", "entities": {}}
+{"text": "today, what do I have", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "what is process scheduling", "intent": "LEARN_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "do I need to go to class today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "add a deposit of 1200 to the fund", "intent": "RECORD_DEPOSIT", "entities": {"amount": 1200}}
+{"text": "remove the HDL deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "HDL"}}
+{"text": "record that we spent 350 on snacks", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "today's schedule please", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "cancel deadline 21 please", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 21}}
+{"text": "any deadlines coming up at all", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "what's tomorrow looking like class-wise", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "find where I wrote about combinational logic", "intent": "SEARCH_NOTES", "entities": {"topic": "combinational logic"}}
+{"text": "I want to learn binary trees", "intent": "LEARN_TOPIC", "entities": {"topic": "binary trees"}}
+{"text": "what classes am I taking this semester", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "cancel the Thesis deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "Thesis"}}
+{"text": "any voting happening right now", "intent": "GET_POLLS", "entities": {}}
+{"text": "no class for Thesis today", "intent": "MARK_NO_CLASS", "entities": {"course": "Thesis", "date": "today"}}
+{"text": "poll everyone on the best time to meet", "intent": "CREATE_POLL", "entities": {}}
+{"text": "list all my pending work", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "any notes on hash tables I've saved", "intent": "SEARCH_NOTES", "entities": {"topic": "hash tables"}}
+{"text": "explain TCP handshakes step by step", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "TCP handshakes"}}
+{"text": "show me Thesis deadlines", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Thesis"}}
+{"text": "practice questions for dynamic programming please", "intent": "PRACTICE_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "how much have we got saved up", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "add an expense entry, 650 pesos for tarpaulins", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "how does TCP handshakes work, teach me", "intent": "LEARN_TOPIC", "entities": {"topic": "TCP handshakes"}}
+{"text": "did anyone post an announcement", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "create a new deadline for Networks, due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "Networks", "date": "Friday"}}
+{"text": "show all active polls right now", "intent": "GET_POLLS", "entities": {}}
+{"text": "Move the LCD deadline to Friday", "intent": "UPDATE_DEADLINE", "entities": {"course": "LCD", "date": "Friday"}}
+{"text": "write down a note for later on hash tables", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "Thesis class is cancelled this week", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "Show me recent fund transactions", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "can you quiz me on combinational logic", "intent": "QUIZ_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "what's the full weekly schedule", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "log a deposit of 500 pesos", "intent": "RECORD_DEPOSIT", "entities": {"amount": 500}}
+{"text": "any notes on combinational logic I've saved", "intent": "SEARCH_NOTES", "entities": {"topic": "combinational logic"}}
+{"text": "write a note summarizing today's lesson", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "what's left to submit for LCD", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "LCD"}}
+{"text": "add a Networks deadline due tomorrow", "intent": "CREATE_DEADLINE", "entities": {"course": "Networks", "date": "tomorrow"}}
+{"text": "check if there's anything new posted", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "log 480 spent on banners for the event", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "roll up all deadlines for next week", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "What deadlines do I have for HDL?", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "HDL"}}
+{"text": "let's do some practice on TCP handshakes", "intent": "PRACTICE_TOPIC", "entities": {"topic": "TCP handshakes"}}
+{"text": "Can you mark Networks as having no class tomorrow?", "intent": "MARK_NO_CLASS", "entities": {"course": "Networks", "date": "tomorrow"}}
+{"text": "what does CS101 still need from me", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "CS101"}}
+{"text": "create a new deadline for Thesis, due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "Thesis", "date": "next Monday"}}
+{"text": "mark Thesis as cancelled today", "intent": "MARK_NO_CLASS", "entities": {"course": "Thesis", "date": "today"}}
+{"text": "class schedule for tomorrow please", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "give me the announcement feed", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "any updates posted", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "what's left in the treasury", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "org announcements please", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "what did the org post", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "check polls for me", "intent": "GET_POLLS", "entities": {}}
+{"text": "no class for CS101 tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "CS101", "date": "tomorrow"}}
+{"text": "save a quick note about the assignment instructions", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "mark LCD as cancelled Friday", "intent": "MARK_NO_CLASS", "entities": {"course": "LCD", "date": "Friday"}}
+{"text": "give me the CS101 deadline list", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "CS101"}}
+{"text": "week-ahead deadline summary please", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "next week"}}
+{"text": "give me the poll list", "intent": "GET_POLLS", "entities": {}}
+{"text": "explain sorting algorithms like I'm five", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "do I have class today", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "what transactions happened recently", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "tomorrow's schedule please", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "show tomorrow's classes", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "reschedule the HDL deadline to this week", "intent": "UPDATE_DEADLINE", "entities": {"course": "HDL", "date": "this week"}}
+{"text": "am I attending anything tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "put out a notice about the new deadline", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "I want to practice recursion", "intent": "PRACTICE_TOPIC", "entities": {"topic": "recursion"}}
+{"text": "are there polls open", "intent": "GET_POLLS", "entities": {}}
+{"text": "gimme today's classes", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "gimme tomorrow's classes", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "I need to move a deadline, the thesis one", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "log a 700 peso expense for transportation rental", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "can you set up a poll about the venue", "intent": "CREATE_POLL", "entities": {}}
+{"text": "schedule pls", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "walk me through OSI layers", "intent": "LEARN_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "what's the latest from the org", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "let me see my classes", "intent": "GET_SCHEDULE", "entities": {}}
+{"text": "create a note for the study group meeting", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "give me multiple choice questions on database normalization", "intent": "QUIZ_TOPIC", "entities": {"topic": "database normalization"}}
+{"text": "no class today, mark it in the schedule", "intent": "MARK_NO_CLASS", "entities": {}}
+{"text": "what's our financial standing right now", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "push the Thesis deadline back a day", "intent": "UPDATE_DEADLINE", "entities": {"course": "Thesis"}}
+{"text": "quick check: classes today?", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "Record an expense of 1000 peso for venue rental", "intent": "RECORD_EXPENSE", "entities": {"amount": 1000, "description": "venue rental"}}
+{"text": "give me the current financial balance", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "quiz me, not practice, on sorting algorithms", "intent": "QUIZ_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "add a HDL deadline due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "HDL", "date": "Friday"}}
+{"text": "LCD deadlines please", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "LCD"}}
+{"text": "how much money is in the account", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "today schedule check", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "show me the org's current balance", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "please make a deadline entry for CS101", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101"}}
+{"text": "what's due", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "give me the recent ledger", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "delete deadline 3", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 3}}
+{"text": "jot down these notes on karnaugh maps", "intent": "CREATE_NOTE", "entities": {}}
+{"text": "find where I wrote about 2's complement", "intent": "SEARCH_NOTES", "entities": {"topic": "2's complement"}}
+{"text": "we used 400 for prizes, log that expense", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "give me every deadline I have", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "how much money is left in the fund", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "create a new deadline for LCD, due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "LCD", "date": "Friday"}}
+{"text": "can you quiz me on karnaugh maps", "intent": "QUIZ_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "what's due over the next 7 days", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "what's outstanding in Thesis", "intent": "GET_COURSE_DEADLINES", "entities": {"course": "Thesis"}}
+{"text": "add a Thesis deadline due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "Thesis", "date": "Friday"}}
+{"text": "reschedule my thesis deadline", "intent": "UPDATE_DEADLINE", "entities": {}}
+{"text": "Find my notes on linked lists", "intent": "SEARCH_NOTES", "entities": {"topic": "linked lists"}}
+{"text": "add a due date for Thesis project", "intent": "CREATE_DEADLINE", "entities": {"course": "Thesis", "title": "project"}}
+{"text": "push the LCD deadline back a day", "intent": "UPDATE_DEADLINE", "entities": {"course": "LCD"}}
+{"text": "What's my schedule for tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "show me what's outstanding", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "move deadline 7 to Friday", "intent": "UPDATE_DEADLINE", "entities": {"deadline_id": 7, "date": "Friday"}}
+{"text": "what's on for tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "practice questions for database normalization please", "intent": "PRACTICE_TOPIC", "entities": {"topic": "database normalization"}}
+{"text": "make an org-wide announcement about dues", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "create a new deadline for CS101, due next Monday", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "date": "next Monday"}}
+{"text": "check how much money we have", "intent": "GET_FUND_BALANCE", "entities": {}}
+{"text": "create a new deadline for CS101, due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "CS101", "date": "Friday"}}
+{"text": "let me know what I have tomorrow", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "add a deposit of 300 peso to the fund", "intent": "RECORD_DEPOSIT", "entities": {"amount": 300}}
+{"text": "get rid of deadline 21", "intent": "DELETE_DEADLINE", "entities": {"deadline_id": 21}}
+{"text": "set up a poll to pick the meeting day", "intent": "CREATE_POLL", "entities": {}}
+{"text": "remove HDL from my schedule tomorrow, no class that day", "intent": "MARK_NO_CLASS", "entities": {"course": "HDL", "date": "tomorrow"}}
+{"text": "I want to understand graph traversal better", "intent": "LEARN_TOPIC", "entities": {"topic": "graph traversal"}}
+{"text": "create a poll for picking the T-shirt color", "intent": "CREATE_POLL", "entities": {}}
+{"text": "search my notes for hash tables", "intent": "SEARCH_NOTES", "entities": {"topic": "hash tables"}}
+{"text": "we spent 550 on certificates, log the expense", "intent": "RECORD_EXPENSE", "entities": {}}
+{"text": "mark Thesis as cancelled tomorrow", "intent": "MARK_NO_CLASS", "entities": {"course": "Thesis", "date": "tomorrow"}}
+{"text": "Record an expense of 150 for printing", "intent": "RECORD_EXPENSE", "entities": {"amount": 150, "description": "printing"}}
+{"text": "create a new deadline for Thesis, due Friday", "intent": "CREATE_DEADLINE", "entities": {"course": "Thesis", "date": "Friday"}}
+{"text": "create a poll for choosing the next officer", "intent": "CREATE_POLL", "entities": {}}
+{"text": "list recent deposits", "intent": "GET_FUND_TRANSACTIONS", "entities": {}}
+{"text": "reschedule the CS101 deadline to tomorrow", "intent": "UPDATE_DEADLINE", "entities": {"course": "CS101", "date": "tomorrow"}}
+{"text": "tell everyone the meeting is cancelled", "intent": "CREATE_ANNOUNCEMENT", "entities": {}}
+{"text": "what polls are currently running", "intent": "GET_POLLS", "entities": {}}
+{"text": "show announcements", "intent": "GET_ANNOUNCEMENTS", "entities": {}}
+{"text": "remove the CS101 deadline", "intent": "DELETE_DEADLINE", "entities": {"course": "CS101"}}
+{"text": "put together a poll for the meeting time", "intent": "CREATE_POLL", "entities": {}}
+{"text": "Record a 500 peso deposit for HDL for printing materials.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 500}}
+{"text": "Log a 500 peso deposit.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 500}}
+{"text": "We received 500 pesos.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 500}}
+{"text": "Record that we got 900 from the bake sale.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 900}}
+{"text": "Add a 900 peso deposit from the bake sale.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 900}}
+{"text": "Put 1200 pesos into the class fund.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 1200}}
+{"text": "Log a deposit of 750 pesos.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 750}}
+{"text": "We got 300 pesos from the fundraiser.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 300}}
+{"text": "Record ₱500 received for printing.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 500}}
+{"text": "Please record PHP 650 as a deposit.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 650}}
+{"text": "Add 400 pesos to our fund.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 400}}
+{"text": "Log the 1000 peso contribution.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 1000}}
+{"text": "We received a 250 peso payment.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 250}}
+{"text": "Record a deposit of 350 for the class.", "intent": "RECORD_DEPOSIT", "entities": {"amount": 350}}
+{"text": "Can you log 800 pesos received?", "intent": "RECORD_DEPOSIT", "entities": {"amount": 800}}
+{"text": "Record a 500 peso expense for printing materials.", "intent": "RECORD_EXPENSE", "entities": {"amount": 500, "description": "printing materials"}}
+{"text": "Add a 900 peso expense for catering.", "intent": "RECORD_EXPENSE", "entities": {"amount": 900, "description": "catering"}}
+{"text": "Log 650 pesos spent on tarpaulins.", "intent": "RECORD_EXPENSE", "entities": {"amount": 650}}
+{"text": "Record an expense of 300 pesos for paper.", "intent": "RECORD_EXPENSE", "entities": {"amount": 300, "description": "paper"}}
+{"text": "We spent 450 pesos on printing.", "intent": "RECORD_EXPENSE", "entities": {"amount": 450}}
+{"text": "Add a 1200 peso expense for the event.", "intent": "RECORD_EXPENSE", "entities": {"amount": 1200, "description": "the event"}}
+{"text": "Log ₱700 spent on supplies.", "intent": "RECORD_EXPENSE", "entities": {"amount": 700}}
+{"text": "Record PHP 350 for transportation.", "intent": "RECORD_EXPENSE", "entities": {"amount": 350}}
+{"text": "Please record 800 pesos as an expense.", "intent": "RECORD_EXPENSE", "entities": {"amount": 800}}
+{"text": "We paid 250 pesos for materials.", "intent": "RECORD_EXPENSE", "entities": {"amount": 250}}
+{"text": "Add the 600 peso printing expense.", "intent": "RECORD_EXPENSE", "entities": {"amount": 600}}
+{"text": "Log a 1000 peso expense for food.", "intent": "RECORD_EXPENSE", "entities": {"amount": 1000, "description": "food"}}
+{"text": "Record 150 pesos spent for photocopies.", "intent": "RECORD_EXPENSE", "entities": {"amount": 150}}
+{"text": "Can you add an expense of 550 pesos?", "intent": "RECORD_EXPENSE", "entities": {"amount": 550}}
+{"text": "Track the 400 peso class expense.", "intent": "RECORD_EXPENSE", "entities": {"amount": 400}}
+{"text": "How do I use 3's complement?", "intent": "LEARN_TOPIC", "entities": {"topic": "3's complement"}}
+{"text": "Can you teach me 3s complement?", "intent": "LEARN_TOPIC", "entities": {"topic": "3's complement"}}
+{"text": "Explain how 3s complement works.", "intent": "LEARN_TOPIC", "entities": {"topic": "3's complement"}}
+{"text": "Teach me combinational logic.", "intent": "LEARN_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "What is combinational logic?", "intent": "LEARN_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "How does combinational logic work?", "intent": "LEARN_TOPIC", "entities": {"topic": "combinational logic"}}
+{"text": "What is process scheduling?", "intent": "LEARN_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "Teach me process scheduling.", "intent": "LEARN_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "Can you explain process scheduling?", "intent": "LEARN_TOPIC", "entities": {"topic": "process scheduling"}}
+{"text": "How do binary search trees work?", "intent": "LEARN_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "Teach me binary search trees.", "intent": "LEARN_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "I need to learn binary search trees.", "intent": "LEARN_TOPIC", "entities": {"topic": "binary search trees"}}
+{"text": "Help me understand Karnaugh maps.", "intent": "LEARN_TOPIC", "entities": {"topic": "karnaugh maps"}}
+{"text": "Teach me Boolean algebra.", "intent": "LEARN_TOPIC", "entities": {"topic": "Boolean algebra"}}
+{"text": "How do OSI layers work?", "intent": "LEARN_TOPIC", "entities": {"topic": "OSI layers"}}
+{"text": "Teach me recursion.", "intent": "LEARN_TOPIC", "entities": {"topic": "recursion"}}
+{"text": "I want to learn SQL joins.", "intent": "LEARN_TOPIC", "entities": {"topic": "SQL joins"}}
+{"text": "How do TCP handshakes work?", "intent": "LEARN_TOPIC", "entities": {"topic": "TCP handshakes"}}
+{"text": "Teach me database normalization.", "intent": "LEARN_TOPIC", "entities": {"topic": "database normalization"}}
+{"text": "Explain dynamic programming to me.", "intent": "LEARN_TOPIC", "entities": {"topic": "dynamic programming"}}
+{"text": "How do regular expressions work?", "intent": "LEARN_TOPIC", "entities": {"topic": "regular expressions"}}
+{"text": "Teach me graph traversal.", "intent": "LEARN_TOPIC", "entities": {"topic": "graph traversal"}}
+{"text": "I want to understand sorting algorithms.", "intent": "LEARN_TOPIC", "entities": {"topic": "sorting algorithms"}}
+{"text": "Can you teach me finite automata?", "intent": "LEARN_TOPIC", "entities": {"topic": "finite automata"}}
+{"text": "Help me learn hash tables.", "intent": "LEARN_TOPIC", "entities": {"topic": "hash tables"}}
+{"text": "What am I missing thats due?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Anything I am missing that is due?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Show my deadlines.", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "What is due?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "What assignments are due?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "List my deadlines.", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Show me upcoming deadlines.", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "What should I submit?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "What work is due?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Do I have anything due?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "What deadlines are coming up?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Show everything that is due.", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "What are my upcoming submissions?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Which tasks are due?", "intent": "GET_DEADLINES", "entities": {}}
+{"text": "Show deadlines for the week.", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "What deadlines do I have this week?", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "Weekly rundown of deadlines.", "intent": "GET_WEEK_DEADLINES", "entities": {}}
+{"text": "List my deadlines this week.", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "What is due this week?", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "Show me this weeks deadlines.", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "Any deadlines coming up this week?", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "Give me the weekly deadline list.", "intent": "GET_WEEK_DEADLINES", "entities": {}}
+{"text": "What assignments are due this week?", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "Show the week deadline schedule.", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}

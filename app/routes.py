@@ -472,7 +472,7 @@ def assistant_chat():
 	message = str(data.get("message", "")).strip()
 	if not message:
 		return jsonify(assistant="R3-1N", error="Enter a question or command"), 400
-	return jsonify(assistant="R3-1N", **answer_message(current_app.config["DATABASE_PATH"], message))
+	return jsonify(assistant="R3-1N", **answer_message(current_app.config["DATABASE_PATH"], message, current_app.config["EARLLM_URL"], current_app.config["EARLLM_TIMEOUT"]))
 
 
 @main.post("/api/assistant/action/prepare")
@@ -508,48 +508,12 @@ def execute_assistant_action():
 
 @main.post("/api/assistant")
 def assistant_command():
+	# Keep the legacy endpoint proposal-only; mutations use the secure action endpoints.
 	data = _payload()
 	command = str(data.get("command", "")).strip()
 	if not command:
 		return jsonify(assistant="R3-1N", error="Enter a command"), 400
-	if not _pin_valid(data):
-		return jsonify(assistant="R3-1N", error="PIN required", requires_pin=True), 403
-	database_path = current_app.config["DATABASE_PATH"]
-	deadline_match = re.match(r"^set deadline (.+?) for (.+?) titled (.+?) for (.+)$", command, re.I)
-	if deadline_match:
-		deadline_text, course_text, title, reason = [part.strip() for part in deadline_match.groups()]
-		course = _course_code(course_text)
-		if not course:
-			return jsonify(assistant="R3-1N", error="Invalid course"), 400
-		try:
-			deadline = parse_manila_datetime(deadline_text)
-		except ValueError:
-			return jsonify(assistant="R3-1N", error="Deadline must be a valid date and time"), 400
-		task = add_task(database_path, {"title": title, "course": course, "description": sanitize_rich_text(reason), "deadline": deadline, "difficulty": "Medium"})
-		return jsonify(assistant="R3-1N", intent="set_deadline", message=f"Deadline set for {course}.", task=task), 201
-	no_class_match = re.match(r"^no classes (.+?) (?:on|for) (.+)$", command, re.I)
-	if no_class_match:
-		course = _course_code(no_class_match.group(1))
-		if not course:
-			return jsonify(assistant="R3-1N", error="Invalid course"), 400
-		try:
-			target_date = parse_manila_date(no_class_match.group(2))
-		except ValueError:
-			return jsonify(assistant="R3-1N", error="Date must be YYYY-MM-DD"), 400
-		exception = add_no_class_exception(database_path, target_date.isoformat(), course)
-		return jsonify(assistant="R3-1N", intent="no_classes", message=f"{course} marked as no class on {target_date.isoformat()}.", exception=exception), 201
-	budget_match = re.match(r"^(deposit|withdraw)\s+([0-9]+(?:\.[0-9]{1,2})?)\s+to\s+(.+?)\s+for\s+(.+)$", command, re.I)
-	if budget_match:
-		entry_type, amount_text, wallet_text, reason = budget_match.groups()
-		amount = Decimal(amount_text)
-		if amount <= 0:
-			return jsonify(assistant="R3-1N", error="Amount must be greater than zero"), 400
-		wallet = next((item for item in list_wallets(database_path, True) if item["name"].casefold() == wallet_text.strip().casefold() or (item.get("course") and item["course"].casefold() == wallet_text.strip().casefold())), None)
-		if not wallet or not wallet.get("course"):
-			return jsonify(assistant="R3-1N", error="Choose a valid course wallet"), 400
-		entry = add_budget_entry(database_path, {"type": entry_type.lower(), "amount": float(amount.quantize(Decimal("0.01"))), "reason": sanitize_rich_text(reason), "wallet_id": wallet["id"], "course": wallet["course"]})
-		return jsonify(assistant="R3-1N", intent=entry_type.lower(), message=f"{entry_type.title()} recorded for {wallet['name']}.", entry=entry), 201
-	return jsonify(assistant="R3-1N", error="Use Set deadline ..., No classes ..., Deposit <amount> to <course> for <reason>, or Withdraw <amount> to <course> for <reason>"), 400
+	return jsonify(assistant="R3-1N", **answer_message(current_app.config["DATABASE_PATH"], command, current_app.config["EARLLM_URL"], current_app.config["EARLLM_TIMEOUT"]))
 
 
 @main.post("/api/tasks")

@@ -1,0 +1,44 @@
+{
+  "dataset_version": "v4",
+  "seed": 42,
+  "source": "data/intents.jsonl",
+  "source_hash": "64d48375fa93",
+  "num_examples": 936,
+  "num_intents": 24,
+  "intents": [
+    "CREATE_ANNOUNCEMENT",
+    "CREATE_DEADLINE",
+    "CREATE_NOTE",
+    "CREATE_POLL",
+    "DELETE_DEADLINE",
+    "EXPLAIN_TOPIC",
+    "GET_ANNOUNCEMENTS",
+    "GET_COURSE_DEADLINES",
+    "GET_DEADLINES",
+    "GET_FUND_BALANCE",
+    "GET_FUND_TRANSACTIONS",
+    "GET_POLLS",
+    "GET_SCHEDULE",
+    "GET_TODAY_SCHEDULE",
+    "GET_TOMORROW_SCHEDULE",
+    "GET_WEEK_DEADLINES",
+    "LEARN_TOPIC",
+    "MARK_NO_CLASS",
+    "PRACTICE_TOPIC",
+    "QUIZ_TOPIC",
+    "RECORD_DEPOSIT",
+    "RECORD_EXPENSE",
+    "SEARCH_NOTES",
+    "UPDATE_DEADLINE"
+  ],
+  "split_sizes": {
+    "train": 654,
+    "validation": 141,
+    "test": 141
+  },
+  "split_fracs": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  }
+}

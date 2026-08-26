@@ -1,6 +1,3 @@
-## Supabase schema setup
-
-Before deploying with `DATABASE_URL`, run `supabase_migration.sql` in the Supabase SQL Editor. It creates the class schedule exception table and adds the optional audit fields used by the budget page. The application now reports the missing relations clearly at startup instead of failing when a no-class exception is submitted.
 # R3-1NFORCE 
 
 R3-1NFORCE is a Flask web app for tracking deadlines, class schedules, notes, announcements, and a shared class fund.
@@ -142,3 +139,12 @@ To cancel a class for one course on one date, use `No classes`. The exception ca
 ## Deployment
 
 `run:app` is the configured Vercel entry point. A deployment also needs a persistent PostgreSQL `DATABASE_URL`, the private `TASK_PIN`, and Supabase Storage settings if attachments should persist outside the app filesystem. Configure these values in the hosting provider's environment settings, then deploy the project using that provider's normal workflow.
+
+The assistant uses the persistent Rust earLLM service described in [docs/earllm_integration.md](docs/earllm_integration.md). For local development, start it before Flask:
+
+```powershell
+cd earLLM/rust
+cargo run --release -- serve --bind 127.0.0.1:8787
+```
+
+Set `EARLLM_URL` and `EARLLM_TIMEOUT` in the Flask environment. `127.0.0.1` is local-only. Vercel cannot host the long-running Rust listener as a sidecar, so production requires a separately hosted earLLM service reachable through a private or authenticated HTTPS URL. Do not deploy with the local default URL.
