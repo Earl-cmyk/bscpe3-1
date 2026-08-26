@@ -6,6 +6,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from contextlib import contextmanager
 from .utils.rich_text import rich_text_plain, sanitize_rich_text
+from .utils.rag import note_chunks, query_terms, rank_chunks
 
 class _PostgresConnection:
 	def __init__(self, connection):
@@ -232,6 +233,9 @@ def init_db(database_path):
 				"INSERT INTO note_search (note_id, title, course, content) VALUES (?, ?, ?, ?)",
 				(note["id"], note["title"], note["course"], rich_text_plain(note["caption"])),
 			)
+		connection.execute(
+			"CREATE TABLE IF NOT EXISTS note_chunks (id INTEGER PRIMARY KEY AUTOINCREMENT, note_id INTEGER NOT NULL, chunk_index INTEGER NOT NULL, content TEXT NOT NULL, content_hash TEXT NOT NULL, embedding TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(note_id, chunk_index))"
+		)
 		legacy_notes = connection.execute(
 			"SELECT id, attachment_name, attachment_path, attachment_type, created_at FROM notes WHERE attachment_path IS NOT NULL"
 		).fetchall()
@@ -318,6 +322,21 @@ def _row_to_dict(row):
 
 def _inserted_id(row):
 	return row["id"] if isinstance(row, dict) else row[0]
+
+
+def _sync_note_chunks(connection, note_id, title, course, caption):
+	chunks = note_chunks(title, rich_text_plain(caption))
+	try:
+		connection.execute("DELETE FROM note_chunks WHERE note_id = ?", (note_id,))
+		for index, content in enumerate(chunks):
+			now = datetime.now(timezone.utc).isoformat()
+			connection.execute(
+				"INSERT INTO note_chunks (note_id, chunk_index, content, content_hash, embedding, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+				(note_id, index, content, hashlib.sha256(content.encode("utf-8")).hexdigest(), None, now, now),
+			)
+	except sqlite3.OperationalError as error:
+		if "no such table" not in str(error).lower():
+			raise
 
 
 def list_tasks(database_path, search=""):
@@ -432,6 +451,7 @@ def add_note(database_path, note):
 			)
 		except sqlite3.OperationalError:
 			pass
+		_sync_note_chunks(connection, note_id, note["title"], note["course"], note["caption"])
 	return get_note(database_path, note_id)
 
 
@@ -444,9 +464,11 @@ def update_note(database_path, note_id, values):
 	set_clause = ", ".join(f"{key} = ?" for key in changes)
 	with get_connection(database_path) as connection:
 		connection.execute(f"UPDATE notes SET {set_clause} WHERE id = ?", [*changes.values(), note_id])
+		updated = connection.execute("SELECT id, title, course, caption FROM notes WHERE id = ?", (note_id,)).fetchone()
+		if updated:
+			_sync_note_chunks(connection, note_id, updated["title"], updated["course"], updated["caption"])
 		try:
 			connection.execute("DELETE FROM note_search WHERE note_id = ?", (note_id,))
-			updated = connection.execute("SELECT id, title, course, caption FROM notes WHERE id = ?", (note_id,)).fetchone()
 			if updated:
 				connection.execute(
 					"INSERT INTO note_search (note_id, title, course, content) VALUES (?, ?, ?, ?)",
@@ -474,6 +496,11 @@ def delete_note(database_path, note_id):
 	with get_connection(database_path) as connection:
 		connection.execute("DELETE FROM notes WHERE id = ?", (note_id,))
 		try:
+			connection.execute("DELETE FROM note_chunks WHERE note_id = ?", (note_id,))
+		except sqlite3.OperationalError as error:
+			if "no such table" not in str(error).lower():
+				raise
+		try:
 			connection.execute("DELETE FROM note_search WHERE note_id = ?", (note_id,))
 		except sqlite3.OperationalError:
 			pass
@@ -484,16 +511,34 @@ def search_note_context(database_path, query, course="", limit=5):
 	if not terms:
 		return []
 	with get_connection(database_path) as connection:
+		try:
+			params = []
+			course_sql = ""
+			if course:
+				course_sql = " AND course = ?"
+				params.append(course)
+			params.append(limit * 4)
+			chunk_rows = connection.execute(
+				f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index LIMIT ?",
+				params,
+			).fetchall()
+			chunks = rank_chunks([dict(row) for row in chunk_rows], query, limit)
+			if chunks:
+				return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in chunks]
+		except (sqlite3.OperationalError, Exception) as error:
+			if not isinstance(error, sqlite3.OperationalError) and "does not exist" not in str(error).lower():
+				raise
 		if str(database_path).startswith(("postgres://", "postgresql://")):
-			pattern = f"%{query}%"
-			params = [pattern, pattern, pattern]
+			patterns = [f"%{term}%" for term in query_terms(query)]
+			term_sql = " OR ".join("title ILIKE %s OR course ILIKE %s OR caption ILIKE %s" for _ in patterns)
+			params = [value for pattern in patterns for value in (pattern, pattern, pattern)]
 			course_sql = ""
 			if course:
 				course_sql = " AND course = %s"
 				params.append(course)
 			params.append(limit)
 			rows = connection.execute(
-				f"SELECT id AS note_id, title, course, caption AS content, 0 AS rank FROM notes WHERE (title ILIKE %s OR course ILIKE %s OR caption ILIKE %s){course_sql} ORDER BY updated_at DESC LIMIT %s",
+				f"SELECT id AS note_id, title, course, caption AS content, 0 AS rank FROM notes WHERE ({term_sql}){course_sql} ORDER BY updated_at DESC LIMIT %s",
 				params,
 			).fetchall()
 		else:

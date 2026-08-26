@@ -60,16 +60,23 @@ class EarllmIntegrationTests(unittest.TestCase):
 
 	def test_note_context_uses_postgres_search_without_sqlite_fts(self):
 		class FakeResult:
+			def __init__(self, rows):
+				self.rows = rows
+
 			def fetchall(self):
-				return [{"note_id": 4, "title": "Binary arithmetic", "course": "HDL", "content": "Learn complements."}]
+				return self.rows
 
 		class FakeConnection:
 			def __init__(self):
 				self.query = ""
+				self.calls = 0
 
 			def execute(self, query, params=()):
 				self.query = query
-				return FakeResult()
+				self.calls += 1
+				if self.calls == 1:
+					return FakeResult([])
+				return FakeResult([{"note_id": 4, "title": "Binary arithmetic", "course": "HDL", "content": "Learn complements."}])
 
 		fake_connection = FakeConnection()
 		with patch("app.models.get_connection") as get_connection_mock:
