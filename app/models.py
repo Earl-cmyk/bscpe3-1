@@ -35,7 +35,9 @@ def get_connection(database_path):
 		from psycopg import connect
 		from psycopg.rows import dict_row
 
-		connection = _PostgresConnection(connect(database_path, row_factory=dict_row))
+		connection = _PostgresConnection(
+			connect(database_path, row_factory=dict_row, prepare_threshold=None)
+		)
 	else:
 		connection = sqlite3.connect(database_path)
 		connection.row_factory = sqlite3.Row
