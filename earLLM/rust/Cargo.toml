@@ -1,0 +1,22 @@
+[package]
+name = "reinitialized"
+version = "0.1.0"
+edition = "2021"
+description = "Reinitialized: small NLU/intent engine for Rein (Rust inference core)"
+
+[lib]
+name = "reinitialized"
+path = "src/lib.rs"
+
+[[bin]]
+name = "reinitialized"
+path = "src/main.rs"
+
+[dependencies]
+serde = { version = "=1.0.210", features = ["derive"] }
+serde_json = "=1.0.128"
+clap = { version = "=4.4.18", features = ["derive"] }
+thiserror = "=1.0.63"
+
+[profile.release]
+opt-level = 3
