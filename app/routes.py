@@ -50,6 +50,7 @@ from .utils.assistant import answer_message
 from .utils.mastercontrol import dispatch_tool, validate_tool
 from .utils.rich_text import rich_text_plain, sanitize_rich_text
 from .utils.schedule import DAY_NAMES, COURSE_SHORT, get_schedule_for_date, parse_manila_date, parse_manila_datetime, serialize_entry, today_manila
+from .services.posts.simple_interest import SimpleInterestError, calculate_simple_interest
 from config import ALLOWED_COURSES, ALLOWED_DIFFICULTIES
 
 
@@ -205,6 +206,14 @@ def get_notes():
 	if course and course not in ALLOWED_COURSES:
 		return jsonify(error="Invalid course"), 400
 	return jsonify(notes=list_notes(current_app.config["DATABASE_PATH"], course))
+
+
+@main.post("/api/interactive/simple-interest")
+def calculate_interactive_simple_interest():
+	try:
+		return jsonify(result=calculate_simple_interest(request.get_json(silent=True) or {}))
+	except SimpleInterestError as error:
+		return jsonify(error=str(error)), 400
 
 
 @main.post("/api/notes")

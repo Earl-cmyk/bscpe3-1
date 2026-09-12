@@ -53,6 +53,26 @@ class EarllmIntegrationTests(unittest.TestCase):
 		self.assertEqual(result["intent"], "clarification")
 		self.assertNotIn("tool", result)
 
+	def test_explicit_learning_request_with_date_does_not_route_to_schedule(self):
+		result = classify_message(
+			"Teach me simple interest today, not my schedule.",
+			nlu_result={"intent": "GET_TODAY_SCHEDULE", "confidence": 0.99, "confidence_band": "high", "entities": {"date": "today"}},
+		)
+		self.assertEqual(result["intent"], "note_query")
+
+	def test_simple_interest_prediction_returns_steps(self):
+		with patch("app.utils.assistant.predict", return_value={"intent": "SIMPLE_INTEREST", "confidence": 0.99, "confidence_band": "high", "entities": {}}):
+			result = answer_message(self.database_path, "Calculate the simple interest on 1000 at 12% for 2 years.", "http://nlu", 1)
+		self.assertEqual(result["intent"], "simple_interest")
+		self.assertIn("Interest earned", result["message"])
+		self.assertAlmostEqual(result["calculation"]["interest"], 240)
+
+	def test_note_retrieval_failure_is_not_an_http_error(self):
+		with patch("app.utils.assistant.predict", return_value={"intent": "LEARN_TOPIC", "confidence": 0.99, "confidence_band": "high", "entities": {"topic": "binary trees"}}), patch("app.models.search_note_context", side_effect=RuntimeError("database unavailable")):
+			response = self.client.post("/api/assistant/chat", json={"message": "Teach me binary trees"})
+		self.assertEqual(response.status_code, 200)
+		self.assertIn("couldn't access", response.get_json()["message"])
+
 	def test_note_grounding_returns_no_context(self):
 		with patch("app.utils.assistant.predict", return_value={"intent": "LEARN_TOPIC", "confidence": 0.99, "confidence_band": "high", "entities": {"topic": "nonexistent topic"}}):
 			result = answer_message(self.database_path, "How does nonexistent topic work?", "http://nlu", 1)

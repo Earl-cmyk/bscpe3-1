@@ -1,12 +1,16 @@
 import re
+import logging
 from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from .rich_text import rich_text_plain
 from .schedule import today_manila
 from ..services.earllm_client import EarllmError, EarllmInvalidResponse, EarllmUnavailable, predict
+from ..services.posts.simple_interest import SimpleInterestError, solve_simple_interest_problem
 
 NO_NOTE_CONTEXT = "I couldn't find information about that in your Notes."
+NOTE_CONTEXT_UNAVAILABLE = "I couldn't access your Notes right now. Please try again later."
+logger = logging.getLogger(__name__)
 
 
 def classify_message(message, nlu_result=None, nlu_url=None, nlu_timeout=None):
@@ -34,7 +38,11 @@ def answer_message(database_path, message, nlu_url=None, nlu_timeout=None):
 	if route["intent"] == "note_query":
 		from ..models import search_note_context
 
-		matches = search_note_context(database_path, route["query"], course=route.get("course", ""))
+		try:
+			matches = search_note_context(database_path, route["query"], course=route.get("course", ""))
+		except Exception:
+			logger.exception("Note retrieval failed for assistant query")
+			return {**route, "message": NOTE_CONTEXT_UNAVAILABLE, "sources": []}
 		if not matches:
 			return {**route, "message": NO_NOTE_CONTEXT, "sources": []}
 		return {
@@ -42,6 +50,12 @@ def answer_message(database_path, message, nlu_url=None, nlu_timeout=None):
 			"message": "Based on your Notes:\n" + "\n".join(f"- {item['title']} ({item['course']}): {item['snippet']}" for item in matches),
 			"sources": matches,
 		}
+	if route["intent"] == "simple_interest":
+		try:
+			result = solve_simple_interest_problem(message)
+		except SimpleInterestError as error:
+			return {**route, "message": str(error)}
+		return {**route, "message": "\n".join(result["steps"]), "calculation": result}
 	if route["intent"] == "deadlines":
 		from ..models import list_tasks
 
@@ -67,6 +81,8 @@ def _route_prediction(prediction, text):
 	intent = prediction["intent"]
 	entities = prediction["entities"]
 	result = {"intent": intent, "confidence": prediction["confidence"], "confidence_band": prediction["confidence_band"], "entities": entities}
+	if intent in {"GET_SCHEDULE", "GET_TODAY_SCHEDULE", "GET_TOMORROW_SCHEDULE"} and _is_learning_request(text):
+		return {**result, "intent": "note_query", "query": entities.get("topic") or text, "course": ""}
 	date_text = entities.get("date") or _relative_date(text.casefold()).isoformat()
 	course = _course_entity(entities.get("course"))
 	if intent == "CREATE_DEADLINE":
@@ -89,6 +105,8 @@ def _route_prediction(prediction, text):
 		return {**result, "intent": "mastercontrol_action", "tool": "record_transaction", "arguments": {"type": "deposit" if intent == "RECORD_DEPOSIT" else "withdraw", "amount": entities.get("amount"), "course": course, "reason": entities.get("description") or entities.get("topic") or _transaction_reason(text)}}
 	if intent in {"LEARN_TOPIC", "SEARCH_NOTES"}:
 		return {**result, "intent": "note_query", "query": entities.get("topic") or text, "course": course or ""}
+	if intent == "SIMPLE_INTEREST":
+		return {**result, "intent": "simple_interest"}
 	if intent in {"GET_SCHEDULE", "GET_TODAY_SCHEDULE", "GET_TOMORROW_SCHEDULE"}:
 		target = "today" if intent == "GET_TODAY_SCHEDULE" else "tomorrow" if intent == "GET_TOMORROW_SCHEDULE" else date_text
 		return {**result, "intent": "schedule", "date": _resolve_date(target)}
@@ -125,6 +143,13 @@ def _valid_course(value):
 
 def _missing(entities, *names):
 	return any(entities.get(name) in (None, "", []) for name in names)
+
+
+def _is_learning_request(text):
+	educational = bool(re.search(r"\b(?:teach|explain|learn|solve|calculate|find)\b", text, re.I))
+	explicitly_not_schedule = bool(re.search(r"\bnot\s+(?:my\s+)?(?:schedule|class(?:es)?|timetable)\b", text, re.I))
+	has_schedule_context = bool(re.search(r"\b(?:schedule|class(?:es)?|timetable)\b", text, re.I))
+	return educational and (explicitly_not_schedule or not has_schedule_context)
 
 
 def _transaction_reason(text):

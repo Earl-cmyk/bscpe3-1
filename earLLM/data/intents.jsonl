@@ -933,3 +933,18 @@
 {"text": "Give me the weekly deadline list.", "intent": "GET_WEEK_DEADLINES", "entities": {}}
 {"text": "What assignments are due this week?", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
 {"text": "Show the week deadline schedule.", "intent": "GET_WEEK_DEADLINES", "entities": {"date": "this week"}}
+{"text": "Calculate the simple interest on 1000 at 12% for 2 years.", "intent": "SIMPLE_INTEREST", "entities": {}}
+{"text": "Find the interest earned on a principal of 2500 at 8% for 3 years.", "intent": "SIMPLE_INTEREST", "entities": {}}
+{"text": "What is the future value of 5000 invested at 10% for 6 months using simple interest?", "intent": "SIMPLE_INTEREST", "entities": {}}
+{"text": "Solve this simple interest problem: principal 1200, rate 5%, time 90 days.", "intent": "SIMPLE_INTEREST", "entities": {}}
+{"text": "Teach me how to solve simple interest for 1500 at 6% over 4 years.", "intent": "SIMPLE_INTEREST", "entities": {}}
+{"text": "How much interest does 800 earn at 9% for 18 months?", "intent": "SIMPLE_INTEREST", "entities": {}}
+{"text": "Please calculate simple interest step by step: $3000 at 7.5% for 2 years.", "intent": "SIMPLE_INTEREST", "entities": {}}
+{"text": "Find the annual rate if 1000 becomes 1120 after 2 years with simple interest.", "intent": "SIMPLE_INTEREST", "entities": {}}
+{"text": "Can you solve my interest word problem for tomorrow's exam: 2000 at 4% for 1 year?", "intent": "SIMPLE_INTEREST", "entities": {"date": "tomorrow"}}
+{"text": "Explain simple interest for a loan of 4500 at 12% from January to March, not my class schedule.", "intent": "SIMPLE_INTEREST", "entities": {}}
+{"text": "What is my schedule for tomorrow?", "intent": "GET_TOMORROW_SCHEDULE", "entities": {"date": "tomorrow"}}
+{"text": "Show my classes on Friday.", "intent": "GET_SCHEDULE", "entities": {"date": "Friday"}}
+{"text": "Do I have class today?", "intent": "GET_TODAY_SCHEDULE", "entities": {"date": "today"}}
+{"text": "Teach me simple interest today, not my schedule.", "intent": "SIMPLE_INTEREST", "entities": {"date": "today"}}
+{"text": "Explain binary trees tomorrow, I am not asking for classes.", "intent": "EXPLAIN_TOPIC", "entities": {"topic": "binary trees", "date": "tomorrow"}}
