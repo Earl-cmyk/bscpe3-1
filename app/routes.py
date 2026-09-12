@@ -216,6 +216,18 @@ def calculate_interactive_simple_interest():
 		return jsonify(error=str(error)), 400
 
 
+@main.post("/api/interactive/simple-interest/example")
+def save_interactive_simple_interest_example():
+	data = request.get_json(silent=True) or {}
+	result = data.get("result")
+	if not isinstance(result, dict) or not result.get("steps"):
+		return jsonify(error="A completed calculation is required"), 400
+	from .models import add_interactive_example
+	content = "Simple interest worked example.\n" + "\n".join(str(step) for step in result["steps"])
+	example = add_interactive_example(current_app.config["DATABASE_PATH"], "Saved Simple Interest Example", "Engr Econ", content)
+	return jsonify(example=example), 201
+
+
 @main.post("/api/notes")
 def create_note():
 	data = request.form

@@ -5,7 +5,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from app import create_app
-from app.models import add_budget_entry, add_wallet, get_connection, init_db, list_budget_audit_events, list_tasks, search_note_context, update_budget_entry
+from app.models import add_budget_entry, add_wallet, get_connection, init_db, list_budget_audit_events, list_tasks, search_interactive_context, search_note_context, update_budget_entry
 from app.services.earllm_client import EarllmInvalidResponse, validate_prediction
 from app.utils.assistant import answer_message, classify_message
 from app.utils.rich_text import sanitize_rich_text
@@ -78,6 +78,27 @@ class EarllmIntegrationTests(unittest.TestCase):
 			result = answer_message(self.database_path, "How does nonexistent topic work?", "http://nlu", 1)
 		self.assertEqual(result["message"], "I couldn't find information about that in your Notes.")
 		self.assertEqual(result["sources"], [])
+
+	def test_interactive_lesson_is_searchable_and_cited(self):
+		matches = search_interactive_context(self.database_path, "ordinary 30/360 simple interest")
+		self.assertTrue(matches)
+		self.assertEqual(matches[0]["source_type"], "interactive")
+		self.assertIn("30/360", matches[0]["content"])
+
+	def test_completed_interactive_example_can_be_saved_and_retrieved(self):
+		result = {"steps": ["1. Use I = P x r x t.", "2. Interest earned: 240."]}
+		response = self.client.post("/api/interactive/simple-interest/example", json={"result": result})
+		self.assertEqual(response.status_code, 201)
+		matches = search_interactive_context(self.database_path, "interest earned 240")
+		self.assertTrue(any(match["source_type"] == "interactive_example" for match in matches))
+
+	def test_study_modes_return_grounded_sections(self):
+		for prompt, mode in (("Explain simple interest", "explain"), ("Quiz me on simple interest", "quiz"), ("Give me a simple interest practice problem", "practice")):
+			with patch("app.utils.assistant.predict", return_value={"intent": "LEARN_TOPIC", "confidence": 0.99, "confidence_band": "high", "entities": {"topic": "simple interest"}}):
+				result = answer_message(self.database_path, prompt, "http://nlu", 1)
+			self.assertEqual(result["mode"], mode)
+			self.assertTrue(result["sources"])
+			self.assertTrue(result["sections"])
 
 	def test_note_context_uses_postgres_search_without_sqlite_fts(self):
 		class FakeResult:

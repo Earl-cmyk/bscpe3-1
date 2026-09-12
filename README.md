@@ -84,6 +84,21 @@ Open **Announcements** from an announcement history link or navigate to `/announ
 
 The assistant bar is available at the bottom of every page. Use it to query schedules, spending, and deadlines. Use the navigation search field to search notes, announcements, and deadlines.
 
+### Study buddy
+
+R3-1N can act as a local, grounded study buddy. Study answers are composed from the plain text of your posted Notes and the built-in interactive lessons; it does not claim information that was not retrieved from those sources. Responses include the source notes used, and unrelated questions return a clear no-context response instead of an invented answer.
+
+Use prompts such as:
+
+- `Explain binary trees from my notes`
+- `Quiz me on simple interest`
+- `Give me a practice problem about linked lists`
+- `Review my notes on number systems`
+
+The Simple Interest interactive feed is indexed as a reusable lesson. After completing a calculation, select **Save as study example** to make that worked example available to future study questions. Transient calculations remain available only in the current interaction until explicitly saved.
+
+earLLM remains the local intent and entity classifier. Rein performs note retrieval, deterministic answer composition, source attribution, and interactive study calculations. Attachments are shown with Notes but are not treated as searchable text unless an extraction pipeline is added.
+
 ### Normal Rein commands
 
 Normal Rein commands are read-only. Type one of these in the assistant bar:

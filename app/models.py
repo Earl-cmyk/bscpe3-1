@@ -241,6 +241,37 @@ def init_db(database_path):
 		connection.execute(
 			"CREATE TABLE IF NOT EXISTS note_chunks (id INTEGER PRIMARY KEY AUTOINCREMENT, note_id INTEGER NOT NULL, chunk_index INTEGER NOT NULL, content TEXT NOT NULL, content_hash TEXT NOT NULL, embedding TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(note_id, chunk_index))"
 		)
+		connection.execute(
+			"CREATE TABLE IF NOT EXISTS interactive_sources (id INTEGER PRIMARY KEY AUTOINCREMENT, source_key TEXT NOT NULL UNIQUE, title TEXT NOT NULL, course TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)"
+		)
+		connection.execute(
+			"CREATE TABLE IF NOT EXISTS interactive_source_chunks (id INTEGER PRIMARY KEY AUTOINCREMENT, source_id INTEGER NOT NULL REFERENCES interactive_sources(id) ON DELETE CASCADE, chunk_index INTEGER NOT NULL, content TEXT NOT NULL, content_hash TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(source_id, chunk_index))"
+		)
+		connection.execute(
+			"CREATE TABLE IF NOT EXISTS interactive_examples (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, course TEXT NOT NULL, content TEXT NOT NULL, created_at TEXT NOT NULL)"
+		)
+		now = datetime.now(timezone.utc).isoformat()
+		simple_interest_content = (
+			"Simple interest. Simple interest is calculated with I = P x r x t, where P is principal, "
+			"r is the annual interest rate written as a decimal, and t is time in years. The future value "
+			"is A = P + I. Ordinary simple interest uses a 30/360 day-count convention. Exact simple "
+			"interest uses the actual elapsed days divided by 365. To solve a problem, identify the known "
+			"values, convert the rate from percent to decimal and time to years, substitute into the formula, "
+			"then check that the result is reasonable."
+		)
+		connection.execute(
+			"INSERT OR IGNORE INTO interactive_sources (source_key, title, course, content, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+			("simple_interest_lesson", "Simple Interest Lesson", "Engr Econ", simple_interest_content, now, now),
+		)
+		interactive = connection.execute("SELECT id, title, course, content FROM interactive_sources WHERE source_key = ?", ("simple_interest_lesson",)).fetchone()
+		if interactive:
+			chunks = note_chunks(interactive["title"], interactive["content"])
+			connection.execute("DELETE FROM interactive_source_chunks WHERE source_id = ?", (interactive["id"],))
+			for index, content in enumerate(chunks):
+				connection.execute(
+					"INSERT INTO interactive_source_chunks (source_id, chunk_index, content, content_hash, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+					(interactive["id"], index, content, hashlib.sha256(content.encode("utf-8")).hexdigest(), now, now),
+				)
 		legacy_notes = connection.execute(
 			"SELECT id, attachment_name, attachment_path, attachment_type, created_at FROM notes WHERE attachment_path IS NOT NULL"
 		).fetchall()
@@ -524,15 +555,14 @@ def search_note_context(database_path, query, course="", limit=5):
 				if course:
 					course_sql = " AND course = ?"
 					params.append(course)
-				params.append(limit * 4)
 				chunk_rows = connection.execute(
-					f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index LIMIT ?",
+					f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index",
 					params,
 				).fetchall()
 				chunks = rank_chunks([dict(row) for row in chunk_rows], query, limit)
 				connection.execute("RELEASE SAVEPOINT rein_note_chunks_probe")
 				if chunks:
-					return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in chunks]
+					return [_note_context_result(row) for row in chunks]
 			except Exception as error:
 				try:
 					connection.execute("ROLLBACK TO SAVEPOINT rein_note_chunks_probe")
@@ -549,14 +579,13 @@ def search_note_context(database_path, query, course="", limit=5):
 				if course:
 					course_sql = " AND course = ?"
 					params.append(course)
-				params.append(limit * 4)
 				chunk_rows = connection.execute(
-					f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index LIMIT ?",
+					f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index",
 					params,
 				).fetchall()
 				chunks = rank_chunks([dict(row) for row in chunk_rows], query, limit)
 				if chunks:
-					return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in chunks]
+					return [_note_context_result(row) for row in chunks]
 			except sqlite3.OperationalError:
 				pass
 		if str(database_path).startswith(("postgres://", "postgresql://")):
@@ -588,7 +617,76 @@ def search_note_context(database_path, query, course="", limit=5):
 				pattern = f"%{query}%"
 				params = [pattern, pattern, pattern, limit]
 				rows = connection.execute("SELECT id AS note_id, title, course, caption AS content, 0 AS rank FROM notes WHERE title LIKE ? OR course LIKE ? OR caption LIKE ? ORDER BY updated_at DESC LIMIT ?", params).fetchall()
-	return [{"note_id": row["note_id"], "title": row["title"], "course": row["course"], "snippet": rich_text_plain(row["content"])[:240]} for row in rows]
+	return [_note_context_result(row) for row in rows]
+
+
+def search_interactive_context(database_path, query, course="", limit=5):
+	terms = " OR ".join(re.findall(r"[\w]+", str(query or "")))
+	if not terms:
+		return []
+	try:
+		with get_connection(database_path) as connection:
+			params = []
+			course_sql = ""
+			if course:
+				course_sql = " AND s.course = ?"
+				params.append(course)
+			rows = connection.execute(
+				f"SELECT c.source_id, s.title, s.course, c.content, c.chunk_index FROM interactive_source_chunks c JOIN interactive_sources s ON s.id = c.source_id WHERE 1 = 1{course_sql} ORDER BY c.source_id, c.chunk_index",
+				params,
+			).fetchall()
+			example_params = [course] if course else []
+			example_course_sql = " WHERE course = ?" if course else ""
+			examples = connection.execute(
+			f"SELECT id AS source_id, title, course, content, 0 AS chunk_index FROM interactive_examples{example_course_sql} ORDER BY id DESC",
+			example_params,
+		).fetchall()
+			results = [_study_context_result(row) for row in rank_chunks([dict(row) for row in rows], query, limit)]
+			results += [_study_context_result({**dict(row), "source_type": "interactive_example"}) for row in rank_chunks([dict(row) for row in examples], query, limit)]
+			return sorted(results, key=lambda item: (-item.get("score", 0), item.get("chunk_index", 0)))[:limit]
+	except (sqlite3.OperationalError, RuntimeError) as error:
+		if _is_missing_relation_error(error) or "no such table" in str(error).lower():
+			return []
+		raise
+
+
+def _note_context_result(row):
+	content = rich_text_plain(row["content"])
+	return {
+		"note_id": row["note_id"],
+		"title": row["title"],
+		"course": row["course"],
+		"chunk_index": row.get("chunk_index", 0) if isinstance(row, dict) else 0,
+		"score": row.get("score", 0) if isinstance(row, dict) else 0,
+		"content": content[:1600],
+		"snippet": content[:240],
+		"source_type": "note",
+	}
+
+
+def _study_context_result(row):
+	content = rich_text_plain(row["content"])
+	return {
+		"note_id": None,
+		"source_id": row["source_id"],
+		"title": row["title"],
+		"course": row["course"],
+		"chunk_index": row.get("chunk_index", 0) if isinstance(row, dict) else 0,
+		"score": row.get("score", 0) if isinstance(row, dict) else 0,
+		"content": content[:1600],
+		"snippet": content[:240],
+		"source_type": row.get("source_type", "interactive") if isinstance(row, dict) else "interactive",
+	}
+
+
+def add_interactive_example(database_path, title, course, content):
+	now = datetime.now(timezone.utc).isoformat()
+	with get_connection(database_path) as connection:
+		cursor = connection.execute(
+			"INSERT INTO interactive_examples (title, course, content, created_at) VALUES (?, ?, ?, ?) RETURNING id",
+			(title, course, content, now),
+		)
+		return {"id": _inserted_id(cursor.fetchone()), "title": title, "course": course, "content": content, "created_at": now}
 
 
 def _is_missing_relation_error(error):

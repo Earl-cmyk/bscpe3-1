@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 
 from .rich_text import rich_text_plain
 from .schedule import today_manila
+from .study import compose_study_response, study_mode
 from ..services.earllm_client import EarllmError, EarllmInvalidResponse, EarllmUnavailable, predict
 from ..services.posts.simple_interest import SimpleInterestError, solve_simple_interest_problem
 
@@ -36,20 +37,19 @@ def answer_message(database_path, message, nlu_url=None, nlu_timeout=None):
 	if route["intent"] == "mastercontrol_action":
 		return {**route, "message": "I parsed this as a Mastercontrol action. PIN authorization and confirmation are required before anything changes."}
 	if route["intent"] == "note_query":
-		from ..models import search_note_context
+		from ..models import search_interactive_context, search_note_context
 
 		try:
-			matches = search_note_context(database_path, route["query"], course=route.get("course", ""))
+			course = route.get("course", "")
+			matches = search_note_context(database_path, route["query"], course=course)
+			matches += search_interactive_context(database_path, route["query"], course=course)
 		except Exception:
 			logger.exception("Note retrieval failed for assistant query")
 			return {**route, "message": NOTE_CONTEXT_UNAVAILABLE, "sources": []}
 		if not matches:
 			return {**route, "message": NO_NOTE_CONTEXT, "sources": []}
-		return {
-			**route,
-			"message": "Based on your Notes:\n" + "\n".join(f"- {item['title']} ({item['course']}): {item['snippet']}" for item in matches),
-			"sources": matches,
-		}
+		study = compose_study_response(route["query"], matches, route.get("mode", study_mode(message)))
+		return {**route, **study}
 	if route["intent"] == "simple_interest":
 		try:
 			result = solve_simple_interest_problem(message)
@@ -103,8 +103,9 @@ def _route_prediction(prediction, text):
 		if _missing(entities, "amount") or not _valid_course(course):
 			return {**result, "intent": "clarification", "message": "What amount and course wallet should I use, and what is it for?"}
 		return {**result, "intent": "mastercontrol_action", "tool": "record_transaction", "arguments": {"type": "deposit" if intent == "RECORD_DEPOSIT" else "withdraw", "amount": entities.get("amount"), "course": course, "reason": entities.get("description") or entities.get("topic") or _transaction_reason(text)}}
-	if intent in {"LEARN_TOPIC", "SEARCH_NOTES"}:
-		return {**result, "intent": "note_query", "query": entities.get("topic") or text, "course": course or ""}
+	if intent in {"LEARN_TOPIC", "SEARCH_NOTES", "EXPLAIN_TOPIC", "PRACTICE_TOPIC", "QUIZ_TOPIC"}:
+		mode = {"EXPLAIN_TOPIC": "explain", "PRACTICE_TOPIC": "practice", "QUIZ_TOPIC": "quiz"}.get(intent, study_mode(text))
+		return {**result, "intent": "note_query", "query": entities.get("topic") or _note_query(text), "course": course or "", "mode": mode}
 	if intent == "SIMPLE_INTEREST":
 		return {**result, "intent": "simple_interest"}
 	if intent in {"GET_SCHEDULE", "GET_TODAY_SCHEDULE", "GET_TOMORROW_SCHEDULE"}:
@@ -113,7 +114,7 @@ def _route_prediction(prediction, text):
 	if intent in {"GET_DEADLINES", "GET_COURSE_DEADLINES", "GET_WEEK_DEADLINES"}:
 		target = _resolve_date(date_text)
 		return {**result, "intent": "deadlines", "start": target, "course": course or ""}
-	if intent in {"GET_ANNOUNCEMENTS", "GET_POLLS", "GET_FUND_BALANCE", "GET_FUND_TRANSACTIONS", "EXPLAIN_TOPIC", "PRACTICE_TOPIC", "QUIZ_TOPIC", "CREATE_ANNOUNCEMENT", "CREATE_POLL", "UPDATE_DEADLINE", "DELETE_NOTE", "UPDATE_NOTE", "VOTE_POLL"}:
+	if intent in {"GET_ANNOUNCEMENTS", "GET_POLLS", "GET_FUND_BALANCE", "GET_FUND_TRANSACTIONS", "CREATE_ANNOUNCEMENT", "CREATE_POLL", "UPDATE_DEADLINE", "DELETE_NOTE", "UPDATE_NOTE", "VOTE_POLL"}:
 		return {**result, "intent": "unsupported", "message": "Rein understands that request, but that function isn't available yet."}
 	return {**result, "intent": "clarification", "message": "I'm not quite sure what you want Rein to do. Could you rephrase that?"}
 

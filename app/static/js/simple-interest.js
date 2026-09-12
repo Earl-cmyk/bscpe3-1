@@ -53,8 +53,22 @@ if (simpleInterestForm) {
 					<div><span>Interest</span><strong>${money.format(result.interest)}</strong></div>
 					<div><span>Annual rate</span><strong>${number.format(result.interest_rate)}%</strong></div>
 				</div>
-				<p class="muted">${result.days} day(s) using ${result.basis === 'ordinary' ? 'ordinary 30/360' : 'exact actual-day/365'}; time fraction: ${number.format(result.time_fraction)}.</p>`;
+				<p class="muted">${result.days} day(s) using ${result.basis === 'ordinary' ? 'ordinary 30/360' : 'exact actual-day/365'}; time fraction: ${number.format(result.time_fraction)}.</p><button class="button button-quiet" type="button" data-save-study-example>Save as study example</button>`;
 			simpleInterestResult.hidden = false;
+			simpleInterestResult.querySelector('[data-save-study-example]').onclick = async () => {
+				const saveButton = simpleInterestResult.querySelector('[data-save-study-example]');
+				saveButton.disabled = true;
+				try {
+					const saved = await fetch('/api/interactive/simple-interest/example', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ result }) });
+					const payload = await saved.json().catch(() => ({}));
+					if (!saved.ok) throw new Error(payload.error || 'Unable to save study example');
+					saveButton.textContent = 'Saved to study sources';
+				} catch (error) {
+					saveButton.disabled = false;
+					simpleInterestError.textContent = error.message || 'Unable to save study example';
+					simpleInterestError.hidden = false;
+				}
+			};
 		} catch (error) {
 			simpleInterestError.textContent = error.message;
 			simpleInterestError.hidden = false;
