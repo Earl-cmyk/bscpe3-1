@@ -31,6 +31,43 @@ function createPlainTextPaste(text) {
 	return pre;
 }
 
+function parsePlainTextTable(text) {
+	const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+	if (lines.length < 2) return null;
+	const borderLine = /^\+[-=+:]+(?:\+[-=+:]+)+$/;
+	const pipeLine = /^\|.*\|$/;
+	const markdownSeparator = /^\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$/;
+	const hasBorder = lines.some((line) => borderLine.test(line));
+	const hasMarkdownSeparator = lines.some((line) => markdownSeparator.test(line));
+	if (!hasBorder && !hasMarkdownSeparator) return null;
+
+	const rowLines = lines.filter((line) => pipeLine.test(line) && !markdownSeparator.test(line));
+	if (rowLines.length < 2) return null;
+	const rows = rowLines.map((line) => {
+		const values = line.replace(/^\|/, '').replace(/\|$/, '').split('|');
+		return values.map((value) => value.trim());
+	});
+	const columns = rows[0].length;
+	if (columns < 2 || rows.some((row) => row.length !== columns)) return null;
+	return rows;
+}
+
+function createTableFromRows(rows) {
+	const table = document.createElement('table');
+	const body = document.createElement('tbody');
+	rows.forEach((values, rowIndex) => {
+		const row = document.createElement('tr');
+		values.forEach((value) => {
+			const cell = document.createElement(rowIndex === 0 ? 'th' : 'td');
+			cell.textContent = value;
+			row.appendChild(cell);
+		});
+		body.appendChild(row);
+	});
+	table.appendChild(body);
+	return table;
+}
+
 function cleanPastedHtml(html) {
 	const source = document.implementation.createHTMLDocument('clipboard');
 	source.body.innerHTML = html;
@@ -137,13 +174,21 @@ function createRichTextEditor(editor) {
 		event.preventDefault();
 		const html = event.clipboardData.getData('text/html');
 		const plainText = event.clipboardData.getData('text/plain');
-		if (isAsciiArt(plainText)) {
-			insertAtSelection(createPlainTextPaste(plainText));
-		} else if (html) {
+		if (html) {
 			const fragment = cleanPastedHtml(html);
 			const wrapper = document.createDocumentFragment();
 			while (fragment.firstChild) wrapper.appendChild(fragment.firstChild);
-			insertAtSelection(wrapper);
+			if (wrapper.querySelector('table')) {
+				insertAtSelection(wrapper);
+			} else if (isAsciiArt(plainText)) {
+				insertAtSelection(createPlainTextPaste(plainText));
+			} else {
+				insertAtSelection(wrapper);
+			}
+		} else if (parsePlainTextTable(plainText)) {
+			insertAtSelection(createTableFromRows(parsePlainTextTable(plainText)));
+		} else if (isAsciiArt(plainText)) {
+			insertAtSelection(createPlainTextPaste(plainText));
 		} else {
 			insertAtSelection(document.createTextNode(plainText));
 		}
