@@ -553,10 +553,10 @@ def search_note_context(database_path, query, course="", limit=5):
 				params = []
 				course_sql = ""
 				if course:
-					course_sql = " AND course = ?"
+					course_sql = " AND n.course = ?"
 					params.append(course)
 				chunk_rows = connection.execute(
-					f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index",
+					f"SELECT c.note_id, n.title, n.course, c.content, c.chunk_index FROM note_chunks c JOIN notes n ON n.id = c.note_id WHERE 1 = 1{course_sql} ORDER BY c.note_id, c.chunk_index",
 					params,
 				).fetchall()
 				chunks = rank_chunks([dict(row) for row in chunk_rows], query, limit)
@@ -577,10 +577,10 @@ def search_note_context(database_path, query, course="", limit=5):
 				params = []
 				course_sql = ""
 				if course:
-					course_sql = " AND course = ?"
+					course_sql = " AND n.course = ?"
 					params.append(course)
 				chunk_rows = connection.execute(
-					f"SELECT note_id, title, course, content, chunk_index FROM note_chunks WHERE 1 = 1{course_sql} ORDER BY note_id, chunk_index",
+					f"SELECT c.note_id, n.title, n.course, c.content, c.chunk_index FROM note_chunks c JOIN notes n ON n.id = c.note_id WHERE 1 = 1{course_sql} ORDER BY c.note_id, c.chunk_index",
 					params,
 				).fetchall()
 				chunks = rank_chunks([dict(row) for row in chunk_rows], query, limit)

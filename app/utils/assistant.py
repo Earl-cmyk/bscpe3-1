@@ -42,10 +42,13 @@ def answer_message(database_path, message, nlu_url=None, nlu_timeout=None):
 		try:
 			course = route.get("course", "")
 			matches = search_note_context(database_path, route["query"], course=course)
-			matches += search_interactive_context(database_path, route["query"], course=course)
 		except Exception:
 			logger.exception("Note retrieval failed for assistant query")
 			return {**route, "message": NOTE_CONTEXT_UNAVAILABLE, "sources": []}
+		try:
+			matches += search_interactive_context(database_path, route["query"], course=course)
+		except Exception:
+			logger.exception("Interactive study retrieval failed for assistant query")
 		if not matches:
 			return {**route, "message": NO_NOTE_CONTEXT, "sources": []}
 		study = compose_study_response(route["query"], matches, route.get("mode", study_mode(message)))
@@ -85,6 +88,10 @@ def _route_prediction(prediction, text):
 		return {**result, "intent": "note_query", "query": entities.get("topic") or text, "course": ""}
 	date_text = entities.get("date") or _relative_date(text.casefold()).isoformat()
 	course = _course_entity(entities.get("course"))
+	if intent in {"GET_SCHEDULE", "GET_TODAY_SCHEDULE", "GET_TOMORROW_SCHEDULE", "GET_DEADLINES", "GET_COURSE_DEADLINES", "GET_WEEK_DEADLINES"} and _is_deadline_request(text):
+		deadline_date = _deadline_date(text, entities.get("date"))
+		if deadline_date:
+			return {**result, "intent": "deadlines", "start": deadline_date, "course": course or ""}
 	if intent == "CREATE_DEADLINE":
 		missing = _missing(entities, "course", "date", "time", "title")
 		if missing or not _valid_course(course):
@@ -151,6 +158,29 @@ def _is_learning_request(text):
 	explicitly_not_schedule = bool(re.search(r"\bnot\s+(?:my\s+)?(?:schedule|class(?:es)?|timetable)\b", text, re.I))
 	has_schedule_context = bool(re.search(r"\b(?:schedule|class(?:es)?|timetable)\b", text, re.I))
 	return educational and (explicitly_not_schedule or not has_schedule_context)
+
+
+def _is_deadline_request(text):
+	return bool(re.search(r"\b(?:deadline|deadlines|due|task|tasks|to-do|todo)\b", text, re.I))
+
+
+def _deadline_date(text, entity_date=None):
+	from .schedule import parse_manila_date
+
+	date_text = entity_date
+	if not date_text:
+		match = re.search(
+			r"\b(?:on|for|by|due)\s+((?:\d{4}-\d{2}-\d{2})|today|tomorrow|yesterday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday|(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:,\s*\d{4})?)\b",
+			text,
+			re.I,
+		)
+		date_text = match.group(1) if match else None
+	if not date_text:
+		return None
+	try:
+		return parse_manila_date(date_text)
+	except ValueError:
+		return None
 
 
 def _transaction_reason(text):

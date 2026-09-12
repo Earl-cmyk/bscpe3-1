@@ -60,6 +60,34 @@ class EarllmIntegrationTests(unittest.TestCase):
 		)
 		self.assertEqual(result["intent"], "note_query")
 
+	def test_date_specific_deadline_request_overrides_schedule_misclassification(self):
+		result = classify_message(
+			"What deadlines do I have on 2026-09-15?",
+			nlu_result={"intent": "GET_SCHEDULE", "confidence": 0.99, "confidence_band": "high", "entities": {}},
+		)
+		self.assertEqual(result["intent"], "deadlines")
+		self.assertEqual(result["start"].isoformat(), "2026-09-15")
+
+	def test_due_tomorrow_routes_to_deadlines(self):
+		result = classify_message(
+			"What is due tomorrow?",
+			nlu_result={"intent": "GET_TODAY_SCHEDULE", "confidence": 0.99, "confidence_band": "high", "entities": {}},
+		)
+		self.assertEqual(result["intent"], "deadlines")
+
+	def test_explicit_schedule_date_stays_schedule(self):
+		result = classify_message(
+			"What is my schedule on 2026-09-15?",
+			nlu_result={"intent": "GET_SCHEDULE", "confidence": 0.99, "confidence_band": "high", "entities": {}},
+		)
+		self.assertEqual(result["intent"], "schedule")
+
+	def test_interactive_retrieval_failure_does_not_hide_notes(self):
+		with patch("app.utils.assistant.predict", return_value={"intent": "LEARN_TOPIC", "confidence": 0.99, "confidence_band": "high", "entities": {"topic": "simple interest"}}), patch("app.models.search_note_context", return_value=[{"note_id": 1, "title": "Interest notes", "course": "Engr Econ", "content": "Simple interest uses I = P x r x t.", "snippet": "Simple interest uses I = P x r x t.", "score": 4}]), patch("app.models.search_interactive_context", side_effect=RuntimeError("interactive table unavailable")):
+			result = answer_message(self.database_path, "Explain simple interest", "http://nlu", 1)
+		self.assertEqual(result["intent"], "note_query")
+		self.assertTrue(result["sources"])
+
 	def test_simple_interest_prediction_returns_steps(self):
 		with patch("app.utils.assistant.predict", return_value={"intent": "SIMPLE_INTEREST", "confidence": 0.99, "confidence_band": "high", "entities": {}}):
 			result = answer_message(self.database_path, "Calculate the simple interest on 1000 at 12% for 2 years.", "http://nlu", 1)
@@ -78,6 +106,16 @@ class EarllmIntegrationTests(unittest.TestCase):
 			result = answer_message(self.database_path, "How does nonexistent topic work?", "http://nlu", 1)
 		self.assertEqual(result["message"], "I couldn't find information about that in your Notes.")
 		self.assertEqual(result["sources"], [])
+
+	def test_sqlite_note_chunks_join_notes_metadata(self):
+		response = self.client.post(
+			"/api/notes",
+			data={"pin": "123456", "title": "Binary arithmetic", "course": "HDL", "caption": "Complements and number systems."},
+		)
+		self.assertEqual(response.status_code, 201)
+		matches = search_note_context(self.database_path, "complements", course="HDL")
+		self.assertTrue(matches)
+		self.assertEqual(matches[0]["title"], "Binary arithmetic")
 
 	def test_interactive_lesson_is_searchable_and_cited(self):
 		matches = search_interactive_context(self.database_path, "ordinary 30/360 simple interest")
