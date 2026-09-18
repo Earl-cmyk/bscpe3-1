@@ -33,7 +33,9 @@ async function loadNotes(course = '') {
 	if (!response.ok) throw new Error(data.error || 'Unable to load notes');
 	notesFeed.innerHTML = data.notes.map(noteMarkup).join('') || '<p class="muted">No notes yet.</p>';
 	finishLoading(notesFeed);
-	setupCollapsibleRichContent(notesFeed);
+	if (typeof window.setupCollapsibleRichContent === 'function') {
+		window.setupCollapsibleRichContent(notesFeed);
+	}
 }
 
 const courseFilter = document.querySelector('#courseFilter');

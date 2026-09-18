@@ -14,7 +14,9 @@ function announcementMarkup(announcement) {
 function renderDashboard(data) {
   $('#dashboardBalance').textContent = money(data.balance);
   $('#announcementFeed').innerHTML = data.announcements.length ? data.announcements.map(announcementMarkup).join('') : '<p class="muted">No announcements yet.</p>';
-  setupCollapsibleRichContent($('#announcementFeed'));
+  if (typeof window.setupCollapsibleRichContent === 'function') {
+    window.setupCollapsibleRichContent($('#announcementFeed'));
+  }
   $('#upcomingDeadlines').innerHTML = data.deadlines.length ? data.deadlines.map((task) => `<div class="deadline-item"><time>${new Date(task.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</time><span><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(task.course)}</small></span></div>`).join('') : '<p class="muted">No upcoming deadlines.</p>';
   finishLoading($('#announcementFeed'));
   finishLoading($('#upcomingDeadlines'));

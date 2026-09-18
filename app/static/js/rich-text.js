@@ -345,6 +345,7 @@ function createRichTextEditor(editor) {
 }
 
 function setupCollapsibleRichContent(root = document) {
+	if (!root || typeof root.querySelectorAll !== 'function') return;
 	root.querySelectorAll('.rich-content').forEach((content) => {
 		if (content.dataset.collapsibleReady) return;
 		content.dataset.collapsibleReady = 'true';
@@ -358,6 +359,8 @@ function setupCollapsibleRichContent(root = document) {
 		content.after(button);
 	});
 }
+
+window.setupCollapsibleRichContent = setupCollapsibleRichContent;
 
 document.addEventListener('click', (event) => {
 	const button = event.target.closest('.rich-content-toggle');
