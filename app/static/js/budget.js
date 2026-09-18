@@ -21,8 +21,10 @@ document.querySelector('#auditModal').onclick = (event) => { const button = even
 let budgetRequest = 0;
 async function loadBudget() {
 	const requestId = ++budgetRequest;
-	showSkeleton($('#budgetEntries'), 'line', 5);
-	showSkeleton($('#auditHistory'), 'line', 4);
+	const budgetEntries = $('#budgetEntries');
+	const auditHistory = $('#auditHistory');
+	if (budgetEntries && typeof window.showSkeleton === 'function') window.showSkeleton(budgetEntries, 'line', 5);
+	if (auditHistory && typeof window.showSkeleton === 'function') window.showSkeleton(auditHistory, 'line', 4);
 	const walletId = $('#walletSelect').value; 
 	const response = await fetch(`/api/budget${walletId ? `?wallet_id=${walletId}` : ''}`); 
 	const data = await response.json(); 
@@ -33,18 +35,22 @@ async function loadBudget() {
 	const withdrawals = Number(data.withdrawals); 
 	const total = deposits + withdrawals; 
 	const depositPercent = total ? (deposits / total) * 100 : 0; 
-	$('#balanceValue').textContent = money(data.balance); 
-	$('#entryCount').textContent = `${data.entries.length} entries`; 
-	$('#depositTotal').textContent = money(deposits); 
-	$('#withdrawTotal').textContent = money(withdrawals); 
-	$('#pieLabel').textContent = total ? money(data.balance) : 'No entries'; 
-	$('#pieDeposit').style.strokeDasharray = `${depositPercent} ${100 - depositPercent}`; 
-	$('#pieWithdraw').style.strokeDasharray = `${100 - depositPercent} ${depositPercent}`; 
-	$('#pieWithdraw').style.strokeDashoffset = `${-depositPercent}`; 
-	$('#budgetEntries').innerHTML = data.entries.map((entry) => `<div class="budget-entry"><span class="entry-icon ${entry.type}">${entry.type === 'deposit' ? '+' : '-'}</span><span><strong>${escapeHtml(entry.title || entry.reason || '')}</strong><small>${escapeHtml(entry.reason || '')} · ${entry.type} · ${entry.status}</small>${entry.payees?.length ? `<small>Payees: ${escapeHtml(entry.payees.join(', '))}</small>` : ''}${entry.purchased_items?.length ? `<small>Items: ${escapeHtml(entry.purchased_items.join(', '))}</small>` : ''}</span><b>${entry.type === 'deposit' ? '+' : '-'}${money(entry.amount)}</b>${entry.type === 'withdraw' && entry.status === 'pending' ? `<span class="entry-actions"><button class="button button-quiet" data-action="cancel" data-id="${entry.id}" aria-label="Cancel withdrawal">&times;</button><button class="button button-primary" data-action="spent" data-id="${entry.id}" aria-label="Mark spent">&check;</button></span>` : ''}</div>`).join('') || '<p class="muted">No entries yet.</p>'; 
-	finishLoading($('#budgetEntries'));
-	$('#auditHistory').innerHTML = data.audit.map((event) => `<div class="audit-event"><strong>${escapeHtml(event.event_type)}${event.entry_title ? ` · ${escapeHtml(event.entry_title)}` : ''}</strong><small>${escapeHtml(event.actor)} · ${escapeHtml(event.created_at)}</small></div>`).join('') || '<p class="muted">No audit events yet.</p>';
-	finishLoading($('#auditHistory'));
+	if ($('#balanceValue')) $('#balanceValue').textContent = money(data.balance); 
+	if ($('#entryCount')) $('#entryCount').textContent = `${data.entries.length} entries`; 
+	if ($('#depositTotal')) $('#depositTotal').textContent = money(deposits); 
+	if ($('#withdrawTotal')) $('#withdrawTotal').textContent = money(withdrawals); 
+	if ($('#pieLabel')) $('#pieLabel').textContent = total ? money(data.balance) : 'No entries'; 
+	if ($('#pieDeposit')) $('#pieDeposit').style.strokeDasharray = `${depositPercent} ${100 - depositPercent}`; 
+	if ($('#pieWithdraw')) $('#pieWithdraw').style.strokeDasharray = `${100 - depositPercent} ${depositPercent}`; 
+	if ($('#pieWithdraw')) $('#pieWithdraw').style.strokeDashoffset = `${-depositPercent}`; 
+	if (budgetEntries) {
+		budgetEntries.innerHTML = data.entries.map((entry) => `<div class="budget-entry"><span class="entry-icon ${entry.type}">${entry.type === 'deposit' ? '+' : '-'}</span><span><strong>${escapeHtml(entry.title || entry.reason || '')}</strong><small>${escapeHtml(entry.reason || '')} · ${entry.type} · ${entry.status}</small>${entry.payees?.length ? `<small>Payees: ${escapeHtml(entry.payees.join(', '))}</small>` : ''}${entry.purchased_items?.length ? `<small>Items: ${escapeHtml(entry.purchased_items.join(', '))}</small>` : ''}</span><b>${entry.type === 'deposit' ? '+' : '-'}${money(entry.amount)}</b>${entry.type === 'withdraw' && entry.status === 'pending' ? `<span class="entry-actions"><button class="button button-quiet" data-action="cancel" data-id="${entry.id}" aria-label="Cancel withdrawal">&times;</button><button class="button button-primary" data-action="spent" data-id="${entry.id}" aria-label="Mark spent">&check;</button></span>` : ''}</div>`).join('') || '<p class="muted">No entries yet.</p>'; 
+		if (typeof window.finishLoading === 'function') window.finishLoading(budgetEntries);
+	}
+	if (auditHistory) {
+		auditHistory.innerHTML = data.audit.map((event) => `<div class="audit-event"><strong>${escapeHtml(event.event_type)}${event.entry_title ? ` · ${escapeHtml(event.entry_title)}` : ''}</strong><small>${escapeHtml(event.actor)} · ${escapeHtml(event.created_at)}</small></div>`).join('') || '<p class="muted">No audit events yet.</p>';
+		if (typeof window.finishLoading === 'function') window.finishLoading(auditHistory);
+	}
 }
 function fillSelects() { 
 	$('#walletSelect').innerHTML = budgetData.wallets.map((wallet) => `<option value="${wallet.id}">${escapeHtml(wallet.name)}${wallet.course ? ` · ${escapeHtml(wallet.course)}` : ''}</option>`).join(''); 
@@ -57,7 +63,18 @@ async function loadReferenceData() {
 	budgetData = data; 
 	fillSelects(); 
 }
-$('#walletSelect').onchange = () => loadBudget().catch((error) => { $('#budgetEntries').innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; $('#auditHistory').innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; finishLoading($('#budgetEntries')); finishLoading($('#auditHistory')); });
+$('#walletSelect').onchange = () => loadBudget().catch((error) => {
+	const budgetEntries = $('#budgetEntries');
+	const auditHistory = $('#auditHistory');
+	if (budgetEntries) {
+		budgetEntries.innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`;
+		if (typeof window.finishLoading === 'function') window.finishLoading(budgetEntries);
+	}
+	if (auditHistory) {
+		auditHistory.innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`;
+		if (typeof window.finishLoading === 'function') window.finishLoading(auditHistory);
+	}
+});
 $('#addWallet').onclick = async () => { const name = window.prompt('Wallet name'); if (!name?.trim()) return; const course = window.prompt('Course code (optional)'); const pin = window.prompt('Enter your PIN'); if (!pin) return; const response = await fetch('/api/wallets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: name.trim(), course: course?.trim() || '', pin }) }); const data = await response.json(); if (!response.ok) window.alert(data.error); else { await loadReferenceData(); $('#walletSelect').value = data.wallet.id; await loadBudget(); } };
 $('#openAudit').onclick = async () => { $('#pinInput').value = ''; $('#pinError').hidden = true; $('#pinModal').hidden = false; };
 $('#pinForm').onsubmit = async (event) => { 
@@ -108,4 +125,15 @@ $('#budgetEntries').onclick = async (event) => {
 	if (!response.ok) window.alert(data.error); 
 	else await loadBudget(); 
 };
-loadReferenceData().then(loadBudget).catch((error) => { $('#budgetEntries').innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; $('#auditHistory').innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; finishLoading($('#budgetEntries')); finishLoading($('#auditHistory')); });
+loadReferenceData().then(loadBudget).catch((error) => {
+	const budgetEntries = $('#budgetEntries');
+	const auditHistory = $('#auditHistory');
+	if (budgetEntries) {
+		budgetEntries.innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`;
+		if (typeof window.finishLoading === 'function') window.finishLoading(budgetEntries);
+	}
+	if (auditHistory) {
+		auditHistory.innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`;
+		if (typeof window.finishLoading === 'function') window.finishLoading(auditHistory);
+	}
+});

@@ -12,19 +12,29 @@ function announcementMarkup(announcement) {
 }
 
 function renderDashboard(data) {
-  $('#dashboardBalance').textContent = money(data.balance);
-  $('#announcementFeed').innerHTML = data.announcements.length ? data.announcements.map(announcementMarkup).join('') : '<p class="muted">No announcements yet.</p>';
-  if (typeof window.setupCollapsibleRichContent === 'function') {
-    window.setupCollapsibleRichContent($('#announcementFeed'));
+  const announcementFeed = $('#announcementFeed');
+  const upcomingDeadlines = $('#upcomingDeadlines');
+  if ($('#dashboardBalance')) $('#dashboardBalance').textContent = money(data.balance);
+  if (announcementFeed) {
+    announcementFeed.innerHTML = data.announcements.length ? data.announcements.map(announcementMarkup).join('') : '<p class="muted">No announcements yet.</p>';
+    if (typeof window.setupCollapsibleRichContent === 'function') {
+      window.setupCollapsibleRichContent(announcementFeed);
+    }
+    if (typeof window.finishLoading === 'function') window.finishLoading(announcementFeed);
   }
-  $('#upcomingDeadlines').innerHTML = data.deadlines.length ? data.deadlines.map((task) => `<div class="deadline-item"><time>${new Date(task.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</time><span><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(task.course)}</small></span></div>`).join('') : '<p class="muted">No upcoming deadlines.</p>';
-  finishLoading($('#announcementFeed'));
-  finishLoading($('#upcomingDeadlines'));
+  if (upcomingDeadlines) {
+    upcomingDeadlines.innerHTML = data.deadlines.length ? data.deadlines.map((task) => `<div class="deadline-item"><time>${new Date(task.deadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</time><span><strong>${escapeHtml(task.title)}</strong><small>${escapeHtml(task.course)}</small></span></div>`).join('') : '<p class="muted">No upcoming deadlines.</p>';
+    if (typeof window.finishLoading === 'function') window.finishLoading(upcomingDeadlines);
+  }
 }
 
 async function loadDashboard() {
-  showSkeleton($('#announcementFeed'), 'card', 3);
-  showSkeleton($('#upcomingDeadlines'), 'line', 3);
+  const announcementFeed = $('#announcementFeed');
+  const upcomingDeadlines = $('#upcomingDeadlines');
+  if (typeof window.showSkeleton === 'function') {
+    if (announcementFeed) window.showSkeleton(announcementFeed, 'card', 3);
+    if (upcomingDeadlines) window.showSkeleton(upcomingDeadlines, 'line', 3);
+  }
   const response = await fetch('/api/dashboard');
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Unable to load dashboard');
@@ -46,4 +56,15 @@ $('#pinForm').onsubmit = async (event) => { event.preventDefault(); const respon
 $('#pollToggle').onclick = () => { const expanded = $('#pollToggle').getAttribute('aria-expanded') === 'true'; $('#pollToggle').setAttribute('aria-expanded', String(!expanded)); $('#pollToggle strong').innerHTML = expanded ? '&rarr;' : '&darr;'; $('#pollFields').hidden = expanded; };
 $('#announcementForm').onsubmit = async (event) => { event.preventDefault(); const response = await fetch('/api/announcements', { method: 'POST', body: new FormData(event.currentTarget) }); const data = await response.json(); if (!response.ok) { $('#announcementError').textContent = data.error; $('#announcementError').hidden = false; return; } $('#announcementModal').hidden = true; event.currentTarget.reset(); await loadDashboard(); };
 $('#announcementFeed').onclick = (event) => { const button = event.target.closest('[data-option]'); if (button) vote(button); };
-loadDashboard().catch((error) => { $('#announcementFeed').innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; $('#upcomingDeadlines').innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; finishLoading($('#announcementFeed')); finishLoading($('#upcomingDeadlines')); });
+loadDashboard().catch((error) => {
+  const announcementFeed = $('#announcementFeed');
+  const upcomingDeadlines = $('#upcomingDeadlines');
+  if (announcementFeed) {
+    announcementFeed.innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`;
+    if (typeof window.finishLoading === 'function') window.finishLoading(announcementFeed);
+  }
+  if (upcomingDeadlines) {
+    upcomingDeadlines.innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`;
+    if (typeof window.finishLoading === 'function') window.finishLoading(upcomingDeadlines);
+  }
+});

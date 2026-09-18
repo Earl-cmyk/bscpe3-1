@@ -29,7 +29,13 @@ async function renderCalendar() { const calendar = $('#calendar'); if (state.vie
 function openTask(taskId) { const task = state.tasks.find((item) => item.id === taskId); if (!task) return; state.activeId = task.id; state.selected = calendarDate(taskDate(task)); state.view = 'day'; updateViewButtons(); renderCalendar(); $('#taskModalContent').innerHTML = `<p class="eyebrow">${escapeHtml(task.course)} · ${escapeHtml(task.difficulty)}</p><h2>${escapeHtml(task.title)}</h2><div class="rich-content">${task.description || ''}</div><p><strong>Due</strong><br>${manilaDateTime(taskDate(task))}</p>`; if (typeof window.setupCollapsibleRichContent === 'function') { window.setupCollapsibleRichContent($('#taskModalContent')); } $('#taskModal').hidden = false; }
 function beginPin(action) { state.pendingAction = action; $('#pinInput').value = ''; $('#pinError').hidden = true; $('#pinModal').hidden = false; }
 function openTaskForm(task = null) { state.pendingAction = task ? 'edit' : 'create'; const form = $('#taskForm'); form.reset(); $('#taskFormTitle').textContent = task ? 'Edit task' : 'Add a task'; $('#taskFormEyebrow').textContent = task ? 'UPDATE ENTRY' : 'NEW ENTRY'; if (task) Object.entries(task).forEach(([key, value]) => { if (form.elements[key]) form.elements[key].value = key === 'deadline' ? new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(taskDate(task)).replace(' ', 'T') : value; }); $('#taskError').hidden = true; $('#taskFormModal').hidden = false; }
-async function loadTasks() { showSkeleton($('#calendar'), 'calendar', 1); state.tasks = (await api('/api/tasks')).tasks; await renderCalendar(); finishLoading($('#calendar')); }
+async function loadTasks() {
+  const calendar = $('#calendar');
+  if (calendar && typeof window.showSkeleton === 'function') window.showSkeleton(calendar, 'calendar', 1);
+  state.tasks = (await api('/api/tasks')).tasks;
+  await renderCalendar();
+  if (calendar && typeof window.finishLoading === 'function') window.finishLoading(calendar);
+}
 async function refreshNoClassDate() { const selectedDate = new Date(`${$('#noClassDate').value}T00:00:00Z`); const schedule = await loadSchedule(selectedDate); $('#noClassCourse').innerHTML = schedule.classes.map((entry) => `<option value="${escapeHtml(entry.short)}">${escapeHtml(entry.short)} · ${escapeHtml(entry.course)}</option>`).join(''); $('#noClassCourse').disabled = !schedule.classes.length; $('#exceptionList').innerHTML = exceptionMarkup(schedule) || '<p class="empty-slot">No exceptions for this date.</p>'; }
 async function openNoClassForm() { $('#noClassDate').value = dateKey(calendarDate(state.selected)); $('#noClassError').hidden = true; $('#noClassModal').hidden = false; await refreshNoClassDate(); }
 $('#openTask').onclick = () => beginPin('create');
@@ -46,4 +52,10 @@ document.querySelectorAll('[data-view]').forEach((button) => { button.onclick = 
 $('#previousMonth').onclick = () => { if (state.view === 'month') state.cursor.setUTCMonth(state.cursor.getUTCMonth() - 1); else state.selected.setUTCDate(state.selected.getUTCDate() - (state.view === 'week' ? 7 : 1)); renderCalendar(); };
 $('#nextMonth').onclick = () => { if (state.view === 'month') state.cursor.setUTCMonth(state.cursor.getUTCMonth() + 1); else state.selected.setUTCDate(state.selected.getUTCDate() + (state.view === 'week' ? 7 : 1)); renderCalendar(); };
 $('#todayButton').onclick = () => { state.cursor = new Date(); state.selected = new Date(); renderCalendar(); };
-updateViewButtons(); loadTasks().catch((error) => { $('#calendar').innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`; finishLoading($('#calendar')); });
+updateViewButtons(); loadTasks().catch((error) => {
+  const calendar = $('#calendar');
+  if (calendar) {
+    calendar.innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`;
+    if (typeof window.finishLoading === 'function') window.finishLoading(calendar);
+  }
+});

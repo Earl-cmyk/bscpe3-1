@@ -27,14 +27,16 @@ function noteMarkup(note) {
 async function loadNotes(course = '') {
 	const url = course ? `/api/notes?course=${encodeURIComponent(course)}` : '/api/notes';
 	const notesFeed = document.querySelector('#notesFeed');
-	showSkeleton(notesFeed, 'card', 4);
+	if (notesFeed && typeof window.showSkeleton === 'function') window.showSkeleton(notesFeed, 'card', 4);
 	const response = await fetch(url);
 	const data = await response.json();
 	if (!response.ok) throw new Error(data.error || 'Unable to load notes');
-	notesFeed.innerHTML = data.notes.map(noteMarkup).join('') || '<p class="muted">No notes yet.</p>';
-	finishLoading(notesFeed);
-	if (typeof window.setupCollapsibleRichContent === 'function') {
-		window.setupCollapsibleRichContent(notesFeed);
+	if (notesFeed) {
+		notesFeed.innerHTML = data.notes.map(noteMarkup).join('') || '<p class="muted">No notes yet.</p>';
+		if (typeof window.finishLoading === 'function') window.finishLoading(notesFeed);
+		if (typeof window.setupCollapsibleRichContent === 'function') {
+			window.setupCollapsibleRichContent(notesFeed);
+		}
 	}
 }
 
@@ -179,6 +181,8 @@ async function deleteNoteWithPin(pin) {
 
 loadNotes().catch((error) => {
 	const notesFeed = document.querySelector('#notesFeed');
-	notesFeed.innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`;
-	finishLoading(notesFeed);
+	if (notesFeed) {
+		notesFeed.innerHTML = `<p class="form-error">${escapeHtml(error.message)}</p>`;
+		if (typeof window.finishLoading === 'function') window.finishLoading(notesFeed);
+	}
 });
