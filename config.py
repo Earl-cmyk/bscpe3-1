@@ -1,14 +1,16 @@
 import os
 from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent
+
+env_file = BASE_DIR / ".env"
 try:
 	from dotenv import load_dotenv
-	load_dotenv()
+	load_dotenv(dotenv_path=env_file, override=False)
 except ImportError:
 	pass
 
 
-BASE_DIR = Path(__file__).resolve().parent
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 DATABASE_PATH = DATABASE_URL or Path(os.getenv("DATABASE_PATH", BASE_DIR / "instance" / "deadlines.db"))
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().rstrip("/")

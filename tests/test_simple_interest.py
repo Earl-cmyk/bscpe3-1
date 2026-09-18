@@ -1,4 +1,7 @@
+import importlib
+import os
 import sqlite3
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -133,6 +136,22 @@ class SimpleInterestTests(unittest.TestCase):
 				self.assertIn("continuous_compounding_lesson", source_keys)
 			finally:
 				connection.close()
+
+	def test_database_url_is_loaded_from_project_root_env(self):
+		previous_cwd = os.getcwd()
+		project_root = Path(__file__).resolve().parents[1]
+		try:
+			os.chdir(project_root.parent)
+			with patch.dict(os.environ, {"DATABASE_URL": ""}, clear=True):
+				os.environ["DATABASE_URL"] = "postgresql://user:pass@localhost:5432/app"
+				import config
+				importlib.reload(config)
+				self.assertEqual(config.DATABASE_URL, "postgresql://user:pass@localhost:5432/app")
+				self.assertEqual(config.DATABASE_PATH, config.DATABASE_URL)
+		finally:
+			os.chdir(previous_cwd)
+			if 'config' in sys.modules:
+				importlib.reload(sys.modules['config'])
 
 
 if __name__ == "__main__":
