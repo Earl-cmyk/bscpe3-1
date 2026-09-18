@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Notes | R3-1NFORCE{% endblock %}
+{% block content %}
+<main class="workspace-page">
+    <div class="page-actions">
+      <select id="courseFilter" class="button button-quiet">
+        <option value="">All Courses</option>
+        <option>HDL</option>
+        <option>LCD</option>
+        <option>DDC</option>
+        <option>CEDD</option>
+        <option>FOSS</option>
+        <option>TRW</option>
+        <option>Elec</option>
+        <option>Engr Econ</option>
+      </select>
+      <button id="openNote" class="button button-primary icon-action" aria-label="Add post" title="Add post">+</button>
+    </div>
+  <section id="notesFeed" class="announcement-history" aria-busy="true"></section>
+  <section class="interactive-feed" aria-labelledby="interactiveFeedTitle">
+    <div class="feed-heading">
+      <div>
+        <p class="eyebrow">INTERACTIVE FEED</p>
+        <h2 id="interactiveFeedTitle">Engineering economy</h2>
+      </div>
+      <small>Engr Econ</small>
+    </div>
+
+    <div class="interactive-post-stack">
+      <form id="simpleInterestForm" class="interactive-post">
+        <h3>Simple interest</h3>
+        <div class="interest-controls">
+          <label>Method<select name="basis"><option value="ordinary">Ordinary (30/360)</option><option value="exact">Exact (actual days/365)</option></select></label>
+          <label>Solve for<select name="solve_for"><option value="future_value">Future value</option><option value="principal">Principal</option><option value="interest_rate">Interest rate</option></select></label>
+          <label>From<input name="start_date" type="date" required /></label>
+          <label>To<input name="end_date" type="date" required /></label>
+          <label data-interest-field="principal">Principal<input name="principal" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
+          <label data-interest-field="future_value" hidden>Future value<input name="future_value" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
+          <label data-interest-field="interest_rate">Annual interest rate (%)<input name="interest_rate" type="number" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
+        </div>
+        <button class="button button-primary" type="submit">Calculate</button>
+        <p id="simpleInterestError" class="form-error" hidden></p>
+        <div id="simpleInterestResult" class="interest-result" aria-live="polite" hidden></div>
+      </form>
+
+      <form id="compoundInterestForm" class="interactive-post">
+        <h3>Compound interest</h3>
+        <div class="interest-controls">
+          <label>Solve for<select name="solve_for"><option value="future_value">Future value</option><option value="principal">Principal</option><option value="interest_rate">Interest rate</option><option value="periods">Periods</option></select></label>
+          <label data-interest-field="principal">Principal<input name="principal" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="future_value" hidden>Future value<input name="future_value" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
+          <label data-interest-field="interest_rate">Rate (%)<input name="interest_rate" type="number" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="n">Periods<input name="n" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+        </div>
+        <button class="button button-primary" type="submit">Calculate</button>
+        <p id="compoundInterestError" class="form-error" hidden></p>
+        <div id="compoundInterestResult" class="interest-result" aria-live="polite" hidden></div>
+      </form>
+
+      <form id="discountForm" class="interactive-post">
+        <h3>Discount</h3>
+        <div class="interest-controls">
+          <label>Solve for<select name="solve_for"><option value="discount">Discount</option><option value="present_value">Present value</option><option value="discount_rate">Discount rate</option><option value="time">Time</option></select></label>
+          <label data-interest-field="future_value">Future value<input name="future_value" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="discount" hidden>Discount<input name="discount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
+          <label data-interest-field="discount_rate">Discount rate (%)<input name="discount_rate" type="number" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="t">Time (years)<input name="t" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+        </div>
+        <button class="button button-primary" type="submit">Calculate</button>
+        <p id="discountError" class="form-error" hidden></p>
+        <div id="discountResult" class="interest-result" aria-live="polite" hidden></div>
+      </form>
+
+      <form id="equationOfValueForm" class="interactive-post">
+        <h3>Equation of value</h3>
+        <div class="interest-controls">
+          <label>Solve for<select name="solve_for"><option value="interest_rate">Interest rate</option><option value="focal_date">Focal date</option><option value="unknown_x">Unknown amount</option></select></label>
+          <label data-interest-field="interest_rate">Interest rate (%)<input name="interest_rate" type="number" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="focal_date">Focal date<input name="focal_date" type="number" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="unknown_time" hidden>Unknown time<input name="unknown_time" type="number" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
+          <label class="full">Obligations<textarea name="obligations" rows="3" placeholder='[{"amount": 2000, "t": 1}]' required></textarea></label>
+          <label class="full">Payments<textarea name="payments" rows="3" placeholder='[{"amount": 1500, "t": 0}]' required></textarea></label>
+        </div>
+        <button class="button button-primary" type="submit">Calculate</button>
+        <p id="equationOfValueError" class="form-error" hidden></p>
+        <div id="equationOfValueResult" class="interest-result" aria-live="polite" hidden></div>
+      </form>
+
+      <form id="nominalRateForm" class="interactive-post">
+        <h3>Nominal rate</h3>
+        <div class="interest-controls">
+          <label>Solve for<select name="solve_for"><option value="nominal_rate">Nominal rate</option><option value="period_rate">Period rate</option><option value="periods_per_year">Periods per year</option></select></label>
+          <label data-interest-field="period_rate">Period rate (%)<input name="period_rate" type="number" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="nominal_rate" hidden>Nominal rate (%)<input name="nominal_rate" type="number" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
+          <label data-interest-field="n1">Compounding periods per year<input name="n1" type="number" min="1" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+        </div>
+        <button class="button button-primary" type="submit">Calculate</button>
+        <p id="nominalRateError" class="form-error" hidden></p>
+        <div id="nominalRateResult" class="interest-result" aria-live="polite" hidden></div>
+      </form>
+
+      <form id="effectiveRateForm" class="interactive-post">
+        <h3>Effective annual rate</h3>
+        <div class="interest-controls">
+          <label>Solve for<select name="solve_for"><option value="effective_rate">Effective rate</option><option value="nominal_rate">Nominal rate</option><option value="periods_per_year">Periods per year</option></select></label>
+          <label data-interest-field="nominal_rate">Nominal rate (%)<input name="nominal_rate" type="number" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="effective_rate" hidden>Effective rate (%)<input name="effective_rate" type="number" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
+          <label data-interest-field="n1">Periods per year<input name="n1" type="number" min="1" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+        </div>
+        <button class="button button-primary" type="submit">Calculate</button>
+        <p id="effectiveRateError" class="form-error" hidden></p>
+        <div id="effectiveRateResult" class="interest-result" aria-live="polite" hidden></div>
+      </form>
+
+      <form id="continuousCompoundingForm" class="interactive-post">
+        <h3>Continuous compounding</h3>
+        <div class="interest-controls">
+          <label>Solve for<select name="solve_for"><option value="future_value">Future value</option><option value="principal">Principal</option><option value="nominal_rate">Nominal rate</option><option value="time">Time</option></select></label>
+          <label data-interest-field="principal">Principal<input name="principal" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="future_value" hidden>Future value<input name="future_value" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
+          <label data-interest-field="nominal_rate">Nominal rate (%)<input name="nominal_rate" type="number" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+          <label data-interest-field="t">Time (years)<input name="t" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" required /></label>
+        </div>
+        <button class="button button-primary" type="submit">Calculate</button>
+        <p id="continuousCompoundingError" class="form-error" hidden></p>
+        <div id="continuousCompoundingResult" class="interest-result" aria-live="polite" hidden></div>
+      </form>
+    </div>
+  </section>
+</main>
+<div id="pinModal" class="modal-backdrop" hidden><form id="pinForm" class="modal small-modal"><button type="button" class="close" data-close="pinModal" aria-label="Close">&times;</button><p class="eyebrow">PRIVATE POST</p><h2>Enter your PIN</h2><input id="pinInput" class="pin-input" type="password" inputmode="numeric" maxlength="6" required /><p id="pinError" class="form-error" hidden></p><button class="button button-primary full-button icon-action" type="submit" aria-label="Continue">&rarr;</button></form></div>
+<div id="noteModal" class="modal-backdrop" hidden><form class="modal announcement-form" id="noteForm" enctype="multipart/form-data"><button type="button" class="close" data-close="noteModal" aria-label="Close">&times;</button><p class="eyebrow">NEW NOTE</p><h2>Post a note</h2><input type="hidden" name="pin" value=""><div class="form-grid single"><label>Title<input name="title" maxlength="120" required /></label><label>Course<select name="course" required><option value="">Select course</option><option>HDL</option><option>LCD</option><option>DDC</option><option>CEDD</option><option>FOSS</option><option>TRW</option><option>Elec</option><option>Engr Econ</option></select></label><label class="full">Caption<textarea name="caption" required hidden></textarea><div class="rich-toolbar" role="toolbar" aria-label="Caption formatting"><button type="button" data-command="bold" aria-label="Bold" title="Bold"><strong>B</strong></button><button type="button" data-command="italic" aria-label="Italic" title="Italic"><em>I</em></button><button type="button" data-command="underline" aria-label="Underline" title="Underline"><u>U</u></button><button type="button" data-command="insertUnorderedList" aria-label="Bulleted list" title="Bulleted list">&#8226;</button><button type="button" data-command="insertOrderedList" aria-label="Numbered list" title="Numbered list">1.</button><button type="button" data-link aria-label="Insert hyperlink" title="Insert hyperlink">&#128279;</button><button type="button" data-command="foreColor" data-value="#b42318" aria-label="Red text" title="Red text">A</button><button type="button" data-command="foreColor" data-value="#176b87" aria-label="Blue text" title="Blue text">A</button><button type="button" data-command="hiliteColor" data-value="#fff0a8" aria-label="Yellow highlight" title="Yellow highlight">&#9632;</button><span class="emoji-tools" aria-label="Emoji"><button type="button" data-emoji="😀" title="Add smile emoji">😀</button><button type="button" data-emoji="🎉" title="Add celebration emoji">🎉</button><button type="button" data-emoji="❤️" title="Add heart emoji">❤️</button></span></div><div id="noteEditor" class="rich-editor" data-rich-editor data-input="#noteForm textarea[name='caption']" contenteditable="true" role="textbox" aria-label="Caption" aria-multiline="true"></div></label><label>Files<input name="attachments" type="file" accept="image/*,video/*,.pdf,.doc,.docx,.txt" multiple /></label></div><p id="noteError" class="form-error" hidden></p><button class="button button-primary full-button" type="submit">Post note</button></form></div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/rich-text.js') }}"></script><script src="{{ url_for('static', filename='js/notes.js') }}"></script><script src="{{ url_for('static', filename='js/simple-interest.js') }}"></script><script src="{{ url_for('static', filename='js/engr-econ.js') }}"></script>{% endblock %}

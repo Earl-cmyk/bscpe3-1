@@ -1,0 +1,10 @@
+.git
+.pytest_cache
+__pycache__
+*.py[cod]
+.env
+venv
+.venv
+instance
+app/static/uploads/*
+earLLM/rust/target

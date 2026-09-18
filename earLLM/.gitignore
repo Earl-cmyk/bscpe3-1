@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+rust/target/
+models/*.npz
+models/*.npz.meta.json
+models/*.joblib
+models/*.joblib.meta.json
+models/*.eval.json
+models/embedding_mlp.vocab.json
