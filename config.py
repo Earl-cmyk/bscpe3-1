@@ -9,8 +9,8 @@ except ImportError:
 
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE_PATH = Path(os.getenv("DATABASE_PATH", BASE_DIR / "instance" / "deadlines.db"))
 DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+DATABASE_PATH = DATABASE_URL or Path(os.getenv("DATABASE_PATH", BASE_DIR / "instance" / "deadlines.db"))
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").strip().rstrip("/")
 SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY", "").strip()
 SUPABASE_STORAGE_BUCKET = os.getenv("SUPABASE_STORAGE_BUCKET", "uploads").strip()
