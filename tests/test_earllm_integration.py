@@ -117,6 +117,25 @@ class EarllmIntegrationTests(unittest.TestCase):
 		self.assertTrue(matches)
 		self.assertEqual(matches[0]["title"], "Binary arithmetic")
 
+	def test_note_formula_markup_survives_post_and_display(self):
+		caption = (
+			'<span class="math-formula">F = '
+			'<span class="math-base">P</span>(1 + '
+			'<span class="math-base">i</span>)'
+			'<sup class="math-sup">n</sup></span>'
+		)
+		response = self.client.post(
+			"/api/notes",
+			data={"pin": "123456", "title": "Compound interest", "course": "Engr Econ", "caption": caption},
+		)
+		self.assertEqual(response.status_code, 201)
+
+		notes = self.client.get("/api/notes").get_json()["notes"]
+		displayed_caption = notes[0]["caption"]
+		self.assertIn('class="math-formula"', displayed_caption)
+		self.assertIn('class="math-base"', displayed_caption)
+		self.assertIn('<sup class="math-sup">n</sup>', displayed_caption)
+
 	def test_interactive_lesson_is_searchable_and_cited(self):
 		matches = search_interactive_context(self.database_path, "ordinary 30/360 simple interest")
 		self.assertTrue(matches)

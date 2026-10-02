@@ -35,7 +35,7 @@ ALLOWED_TAGS = {
 }
 ALLOWED_ATTRIBUTES = {"a": ["href", "target", "rel"], "span": ["class", "style"], "font": ["color", "face", "size"], "div": ["class", "data-python-cell"], "button": ["type", "class", "data-run-python"], "code": ["contenteditable", "spellcheck"], "pre": ["class", "data-python-output", "hidden"]}
 ALLOWED_PROTOCOLS = {"http", "https"}
-ALLOWED_CLASSES = {"text-color-red", "text-color-blue", "text-color-green", "highlight-yellow", "highlight-blue", "highlight-green", "python-cell", "python-cell-toolbar", "python-cell-run", "python-cell-output", "math-formula", "math-fraction", "math-num", "math-den", "math-bar", "math-sup", "math-sub"}
+ALLOWED_CLASSES = {"text-color-red", "text-color-blue", "text-color-green", "highlight-yellow", "highlight-blue", "highlight-green", "python-cell", "python-cell-toolbar", "python-cell-run", "python-cell-output", "math-formula", "math-fraction", "math-num", "math-den", "math-bar", "math-base", "math-sup", "math-sub"}
 ALLOWED_COLORS = {"#b42318", "#176b87", "#2f7d32", "#d65a68", "rgb(180, 35, 24)", "rgb(23, 107, 135)", "rgb(47, 125, 50)", "rgb(214, 90, 104)"}
 ALLOWED_HIGHLIGHTS = {"background-color: rgb(255, 240, 168)", "background-color: rgb(207, 235, 255)", "background-color: rgb(211, 241, 214)", "background-color: rgb(84, 38, 44)"}
 ALLOWED_FONT_FAMILIES = {"serif", "sans-serif", "monospace", "Georgia", "Verdana", "Courier New"}
@@ -59,9 +59,7 @@ def _filter_attributes(tag, name, value):
 		return _link_is_safe(value)
 	if tag == "a" and name in {"target", "rel"}:
 		return True
-	if tag == "span" and name == "class":
-		return set(value.split()).issubset(ALLOWED_CLASSES)
-	if tag in {"div", "button", "pre"} and name == "class":
+	if tag in {"span", "div", "button", "pre", "sup", "sub"} and name == "class":
 		return set(value.split()).issubset(ALLOWED_CLASSES)
 	if tag == "div" and name == "data-python-cell":
 		return value == "true"
